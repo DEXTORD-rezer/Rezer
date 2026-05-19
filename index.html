@@ -1069,6 +1069,7 @@ function goPage(id) {
   document.querySelectorAll('.nav-item')[map[id]].classList.add('active');
   if (id === 'keys') renderKeysTable();
   if (id === 'hwid') renderHwidTable();
+  if (id === 'api') initApiPage();
 }
 
 function genKey(prefix) {
@@ -1280,8 +1281,6 @@ if (keys.length === 0) {
 
 renderActivity();
 updateStats();
-
-// ===== API SECRET & C++ CODE =====
 function generateApiSecret() {
   const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let secret = 'sk_priv_';
@@ -1396,12 +1395,6 @@ function initApiPage() {
   renderCppCode(secret);
 }
 
-// Patch goPage to init API section when opened
-const _origGoPage = goPage;
-function goPage(id) {
-  _origGoPage(id);
-  if (id === 'api') initApiPage();
-}
 </script>
 </body>
 </html>
