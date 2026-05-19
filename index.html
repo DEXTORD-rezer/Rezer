@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -924,6 +923,79 @@ local function checkLicense(key, hwid)
     return false
   end
 end</div>
+
+        <!-- ===== C++ INTEGRATION SECTION ===== -->
+        <div style="margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--border);">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;">
+            <div style="font-size:0.95rem;font-weight:800;">C++ Integration</div>
+            <span style="background:rgba(0,212,170,0.15);color:var(--accent2);font-size:0.65rem;font-weight:700;padding:2px 8px;border-radius:10px;font-family:'JetBrains Mono',monospace;">ValidateHWID()</span>
+          </div>
+
+          <!-- API Secret Card -->
+          <div style="background:rgba(108,99,255,0.06);border:1px solid rgba(108,99,255,0.3);border-radius:12px;padding:1.2rem;margin-bottom:1rem;">
+            <div style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.8rem;">
+              <i class="ti ti-key" style="font-size:14px;vertical-align:-2px;margin-right:4px;"></i>Kredensial API Kamu
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-bottom:1rem;">
+              <div>
+                <div style="font-size:0.7rem;color:var(--muted);margin-bottom:4px;font-weight:600;">API HOST</div>
+                <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:7px 10px;font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--accent2);">api.nexauth.io</div>
+              </div>
+              <div>
+                <div style="font-size:0.7rem;color:var(--muted);margin-bottom:4px;font-weight:600;">API PATH</div>
+                <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:7px 10px;font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--accent2);">/v1/auth</div>
+              </div>
+            </div>
+
+            <div>
+              <div style="font-size:0.7rem;color:var(--muted);margin-bottom:4px;font-weight:600;display:flex;align-items:center;justify-content:space-between;">
+                <span>API SECRET KEY</span>
+                <button onclick="generateApiSecret()" style="background:rgba(108,99,255,0.2);border:none;border-radius:5px;padding:2px 8px;color:var(--accent);font-size:0.65rem;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;">
+                  <i class="ti ti-refresh" style="font-size:11px;vertical-align:-1px;"></i> Regenerate
+                </button>
+              </div>
+              <div style="background:var(--bg);border:1px solid rgba(108,99,255,0.4);border-radius:6px;padding:7px 10px;font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--accent);display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                <span id="apiSecretDisplay" style="word-break:break-all;"></span>
+                <button onclick="copyApiSecret()" style="background:rgba(108,99,255,0.15);border:none;border-radius:5px;padding:3px 10px;color:var(--accent);font-size:0.7rem;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;white-space:nowrap;">COPY</button>
+              </div>
+            </div>
+
+            <div style="margin-top:0.8rem;font-size:0.75rem;color:var(--muted);display:flex;align-items:center;gap:6px;">
+              <i class="ti ti-shield-lock" style="font-size:13px;color:var(--warn);"></i>
+              Jangan bagikan API Secret ke siapapun. Gunakan hanya di source code C++ kamu.
+            </div>
+          </div>
+
+          <!-- HWID Auth Logic -->
+          <div class="endpoint-card" style="border-color:rgba(0,212,170,0.2);">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+              <span class="method-badge post">LOGIC</span>
+              <span class="endpoint-path">HWID Lock — Alur Validasi</span>
+            </div>
+            <div class="endpoint-desc" style="margin-bottom:0.8rem;">Server otomatis register HWID saat pertama kali, lalu lock ke PC tersebut.</div>
+            <div class="code-block" style="color:var(--muted);line-height:1.8;">
+<span style="color:var(--accent2);">// STEP 1</span> → User input key → C++ kirim {key + hwid} ke server
+<span style="color:var(--accent2);">// STEP 2</span> → Server cari key di database
+  <span style="color:var(--danger);">✗</span> Key tidak ada     → {"success":false, "message":"Invalid Key"}
+  <span style="color:var(--danger);">✗</span> Key expired        → {"success":false, "message":"Key Expired"}
+  <span style="color:var(--danger);">✗</span> Key banned         → {"success":false, "message":"Key Banned"}
+<span style="color:var(--accent2);">// STEP 3</span> → Cek HWID di database
+  <span style="color:var(--success);">✓</span> HWID = null/kosong → <span style="color:var(--warn);">REGISTER</span> hwid sekarang → {"success":true}
+  <span style="color:var(--success);">✓</span> HWID = cocok       → {"success":true, "message":"Access Granted"}
+  <span style="color:var(--danger);">✗</span> HWID ≠ beda PC     → {"success":false, "message":"HWID Mismatch"}</div>
+          </div>
+
+          <!-- C++ Code -->
+          <div style="font-size:0.82rem;font-weight:700;margin-bottom:0.6rem;color:var(--text);display:flex;align-items:center;justify-content:space-between;">
+            <span><i class="ti ti-brand-cpp" style="font-size:16px;vertical-align:-3px;margin-right:6px;color:var(--accent);"></i>Code C++ — ValidateHWID()</span>
+            <button onclick="copyCppCode()" style="background:rgba(108,99,255,0.15);border:1px solid rgba(108,99,255,0.3);border-radius:6px;padding:3px 12px;color:var(--accent);font-size:0.72rem;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;">
+              <i class="ti ti-copy" style="font-size:12px;vertical-align:-1px;"></i> Copy Code
+            </button>
+          </div>
+          <div class="code-block" id="cppCodeBlock" style="color:#c9d1d9;line-height:1.7;white-space:pre;overflow-x:auto;"></div>
+
+        </div>
       </div>
 
     </div>
@@ -1208,6 +1280,128 @@ if (keys.length === 0) {
 
 renderActivity();
 updateStats();
+
+// ===== API SECRET & C++ CODE =====
+function generateApiSecret() {
+  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let secret = 'sk_priv_';
+  for (let i = 0; i < 32; i++) secret += chars[Math.floor(Math.random() * chars.length)];
+  localStorage.setItem('ks_api_secret', secret);
+  document.getElementById('apiSecretDisplay').textContent = secret;
+  renderCppCode(secret);
+  showToast('API Secret baru dibuat!', 'success');
+}
+
+function copyApiSecret() {
+  const secret = document.getElementById('apiSecretDisplay').textContent;
+  if (!secret) return;
+  navigator.clipboard.writeText(secret).then(() => showToast('API Secret disalin!', 'success'));
+}
+
+function copyCppCode() {
+  const code = document.getElementById('cppCodeBlock').textContent;
+  navigator.clipboard.writeText(code).then(() => showToast('C++ code disalin!', 'success'));
+}
+
+function renderCppCode(secret) {
+  const code =
+`bool ValidateHWID() {
+    // ================================================
+    //  KREDENSIAL PANEL — JANGAN BAGIKAN KE SIAPAPUN
+    // ================================================
+    const std::string API_HOST   = "api.nexauth.io";
+    const std::string API_PATH   = "/v1/auth";
+    const std::string API_SECRET = "${secret}";
+
+    // 1. INPUT LICENSE KEY DARI USER
+    std::string licenseKey;
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 11);
+    std::cout << "\\n  [ CHIKUBI AUTH ] ENTER YOUR LICENSE KEY: ";
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15);
+    std::cin >> licenseKey;
+    licenseKey = Trim(licenseKey);
+    if (licenseKey.empty()) return false;
+
+    // 2. AMBIL HWID PC SEKARANG
+    std::string hwid = GetNativeHWID();
+    if (hwid.empty()) {
+        std::cout << "  [!] Gagal membaca HWID.\\n";
+        return false;
+    }
+
+    // 3. KIRIM KEY + HWID KE SERVER
+    //    - Jika HWID di DB kosong  → server register HWID ini → granted
+    //    - Jika HWID di DB ada     → compare → match = granted, beda = denied
+    std::string jsonPayload =
+        "{\\"key\\":\\"" + licenseKey +
+        "\\",\\"hwid\\":\\"" + hwid +
+        "\\",\\"app_id\\":\\"chikubi_v8\\"}";
+
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 14);
+    std::cout << "  [*] Validating...\\n";
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15);
+
+    std::string response = HttpPost(API_HOST, API_PATH, jsonPayload, API_SECRET);
+
+    // 4. PARSE RESPONSE DARI SERVER
+    if (response.empty()) {
+        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 12);
+        std::cout << "  [!] Tidak bisa terhubung ke server.\\n";
+        return false;
+    }
+
+    if (response.find("\\"success\\":true") != std::string::npos) {
+        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 10);
+        std::cout << "  [+] ACCESS GRANTED! Welcome to Chikubi Terminal V8.\\n\\n";
+        Sleep(1500);
+        return true;
+    }
+
+    // 5. TAMPILKAN ALASAN GAGAL
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 12);
+    if (response.find("HWID Mismatch") != std::string::npos ||
+        response.find("hwid_mismatch") != std::string::npos) {
+        std::cout << "  [!] HWID MISMATCH: Key ini terdaftar di perangkat lain.\\n";
+        std::cout << "  [!] HWID kamu : " << hwid << "\\n";
+        std::cout << "  [!] Hubungi admin untuk reset HWID.\\n\\n";
+    }
+    else if (response.find("Invalid Key") != std::string::npos) {
+        std::cout << "  [!] INVALID KEY: Lisensi tidak ditemukan.\\n\\n";
+    }
+    else if (response.find("Expired") != std::string::npos) {
+        std::cout << "  [!] KEY EXPIRED: Lisensi sudah habis masa berlakunya.\\n\\n";
+    }
+    else if (response.find("Key Banned") != std::string::npos) {
+        std::cout << "  [!] KEY BANNED: Lisensi diblokir oleh admin.\\n\\n";
+    }
+    else {
+        std::cout << "  [!] VALIDATION FAILED.\\n";
+        std::cout << "  [!] Server response: " << response << "\\n\\n";
+    }
+
+    return false;
+}`;
+  document.getElementById('cppCodeBlock').textContent = code;
+}
+
+function initApiPage() {
+  let secret = localStorage.getItem('ks_api_secret');
+  if (!secret) {
+    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    secret = 'sk_priv_';
+    for (let i = 0; i < 32; i++) secret += chars[Math.floor(Math.random() * chars.length)];
+    localStorage.setItem('ks_api_secret', secret);
+  }
+  document.getElementById('apiSecretDisplay').textContent = secret;
+  renderCppCode(secret);
+}
+
+// Patch goPage to init API section when opened
+const _origGoPage = goPage;
+function goPage(id) {
+  _origGoPage(id);
+  if (id === 'api') initApiPage();
+}
 </script>
 </body>
 </html>
