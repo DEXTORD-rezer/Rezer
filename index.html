@@ -1,1241 +1,1213 @@
+
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NexAuth — Private Panel</title>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@400;600;700;800&display=swap');
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
   :root {
-    --bg:#080c14;--bg2:#0d1220;--bg3:#121929;
-    --surface:#161e2e;--surface2:#1c2640;
-    --border:#1f2d47;--border2:#2a3d5e;
-    --accent:#00d4ff;--accent2:#0099cc;--accent3:#00ffaa;
-    --danger:#ff4466;--warn:#ffaa00;
-    --text:#e2e8f0;--text2:#8899bb;--text3:#4a5a7a;
-    --glow:0 0 20px rgba(0,212,255,0.15);--glow2:0 0 40px rgba(0,212,255,0.08);
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #1a1a24;
+    --border: #2a2a3a;
+    --accent: #6c63ff;
+    --accent2: #00d4aa;
+    --danger: #ff4d6d;
+    --warn: #ffa94d;
+    --text: #e8e8f0;
+    --muted: #6b6b8a;
+    --success: #40c97a;
   }
-  *{margin:0;padding:0;box-sizing:border-box}
-  body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;overflow-x:hidden}
-  ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--bg2)}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
 
-  /* ===== LOGIN SCREEN ===== */
-  #login-screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg);z-index:9000}
-  #login-screen::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,rgba(0,212,255,0.05) 0%,transparent 60%)}
-  .login-box{background:var(--bg2);border:1px solid var(--border);border-radius:24px;padding:48px;width:100%;max-width:400px;position:relative;z-index:1;animation:fadeUp .5s ease}
-  @keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
-  .login-logo{display:flex;align-items:center;gap:12px;font-size:22px;font-weight:800;margin-bottom:36px}
-  .logo-icon{width:38px;height:38px;background:linear-gradient(135deg,var(--accent),var(--accent3));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
-  .login-label{display:block;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
-  .login-input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 18px;color:var(--text);font-size:14px;font-family:'Syne',sans-serif;outline:none;transition:.2s;margin-bottom:16px}
-  .login-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,212,255,0.1)}
-  .login-btn{width:100%;padding:14px;background:var(--accent);color:#000;border:none;border-radius:12px;font-family:'Syne',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:.2s;margin-top:4px}
-  .login-btn:hover{background:#00b8dd;box-shadow:0 0 24px rgba(0,212,255,0.4)}
-  .login-err{display:none;background:rgba(255,68,102,0.1);border:1px solid rgba(255,68,102,0.3);border-radius:10px;padding:12px 16px;font-size:13px;color:var(--danger);margin-top:14px;text-align:center}
-  .login-err.show{display:block}
-  .shake{animation:shake .4s ease}
-  @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
-  .lock-icon{font-size:48px;text-align:center;margin-bottom:20px;display:block;filter:drop-shadow(0 0 16px rgba(0,212,255,0.4))}
-  .attempt-warn{font-size:12px;color:var(--text3);text-align:center;margin-top:14px}
+  body {
+    font-family: 'Syne', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
 
-  /* ===== DASHBOARD ===== */
-  #dashboard{display:none;min-height:100vh}
-  .sidebar{position:fixed;left:0;top:0;bottom:0;width:240px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:50}
-  .sidebar-logo{padding:22px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;font-size:18px;font-weight:800}
-  .owner-badge{background:linear-gradient(135deg,var(--accent),var(--accent3));color:#000;font-size:9px;font-weight:800;padding:2px 8px;border-radius:100px;text-transform:uppercase;letter-spacing:0.5px}
-  .sidebar-user{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
-  .avatar{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent3));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#000;flex-shrink:0}
-  .user-info{flex:1;min-width:0}
-  .user-name{font-weight:700;font-size:14px}
-  .user-role{font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;font-weight:600}
-  .sidebar-nav{flex:1;padding:12px 0;overflow-y:auto}
-  .nav-section{padding:8px 20px 4px;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-weight:600}
-  .nav-item{display:flex;align-items:center;gap:12px;padding:10px 20px;cursor:pointer;transition:.2s;font-size:14px;font-weight:500;color:var(--text2);border-left:3px solid transparent;margin:2px 0}
-  .nav-item:hover{color:var(--text);background:rgba(255,255,255,0.03)}
-  .nav-item.active{color:var(--accent);background:rgba(0,212,255,0.06);border-left-color:var(--accent)}
-  .nav-item .ni{font-size:16px;width:20px;text-align:center}
-  .sidebar-bottom{padding:16px 20px;border-top:1px solid var(--border)}
-  .main{margin-left:240px;min-height:100vh;display:flex;flex-direction:column}
-  .topbar{padding:20px 32px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg);position:sticky;top:0;z-index:40}
-  .topbar h2{font-size:20px;font-weight:800}
-  .topbar-actions{display:flex;gap:12px;align-items:center}
-  .content{padding:32px;flex:1}
-  .page{display:none}.page.active{display:block}
+  /* ===== VIEWS ===== */
+  .view { display: none; min-height: 100vh; }
+  .view.active { display: flex; }
 
-  /* Buttons */
-  .btn{padding:10px 24px;border-radius:8px;border:none;cursor:pointer;font-family:'Syne',sans-serif;font-weight:600;font-size:14px;transition:all .2s}
-  .btn-primary{background:var(--accent);color:#000}.btn-primary:hover{background:#00b8dd;box-shadow:0 0 20px rgba(0,212,255,0.4)}
-  .btn-outline{background:transparent;color:var(--accent);border:1px solid var(--accent)}.btn-outline:hover{background:rgba(0,212,255,0.08)}
-  .btn-danger{background:var(--danger);color:#fff}.btn-danger:hover{background:#cc0033}
-  .btn-warn{background:var(--warn);color:#000}.btn-warn:hover{background:#cc8800}
-  .btn-sm{padding:6px 14px;font-size:13px}
-  .btn-full{width:100%}
+  /* ===== LOGIN VIEW ===== */
+  #loginView {
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(ellipse at 30% 20%, #1a1040 0%, var(--bg) 60%);
+  }
 
-  /* Cards */
-  .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:20px}
-  .card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
-  .card-title{font-size:16px;font-weight:700}
-  .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
-  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
-  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;position:relative;overflow:hidden}
-  .stat-card::after{content:'';position:absolute;right:-20px;top:-20px;width:100px;height:100px;border-radius:50%;opacity:0.06}
-  .stat-card.blue::after{background:var(--accent)}.stat-card.green::after{background:var(--accent3)}
-  .stat-card.red::after{background:var(--danger)}.stat-card.yellow::after{background:var(--warn)}
-  .stat-card-icon{font-size:28px;margin-bottom:16px}
-  .stat-card-num{font-size:32px;font-weight:800;font-family:'JetBrains Mono',monospace;margin-bottom:4px}
-  .stat-card-label{font-size:13px;color:var(--text2)}
-  .stat-card-change{font-size:12px;margin-top:8px;color:var(--accent3)}
+  .login-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2.5rem;
+    width: 380px;
+    position: relative;
+    overflow: hidden;
+  }
 
-  /* Table */
-  .table-wrap{overflow-x:auto}
-  table{width:100%;border-collapse:collapse;font-size:14px}
-  th{text-align:left;padding:12px 16px;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--border)}
-  td{padding:14px 16px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--text2)}
-  tr:last-child td{border-bottom:none}tr:hover td{background:rgba(255,255,255,0.02)}
-  .mono{font-family:'JetBrains Mono',monospace;font-size:13px}
-  .badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:600}
-  .badge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor}
-  .badge-green{background:rgba(0,255,170,0.1);color:var(--accent3)}
-  .badge-red{background:rgba(255,68,102,0.1);color:var(--danger)}
-  .badge-blue{background:rgba(0,212,255,0.1);color:var(--accent)}
-  .badge-yellow{background:rgba(255,170,0,0.1);color:var(--warn)}
-  .badge-gray{background:rgba(255,255,255,0.06);color:var(--text3)}
+  .login-box::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+  }
 
-  /* Form */
-  .form-group{margin-bottom:18px}
-  .form-group label{display:block;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
-  .form-group input,.form-group select,.form-group textarea{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;color:var(--text);font-family:'Syne',sans-serif;font-size:14px;transition:.2s;outline:none}
-  .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,212,255,0.1)}
-  .form-group select option{background:var(--surface)}
-  .form-group textarea{resize:vertical;min-height:80px}
-  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .logo-area {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
 
-  /* Toggle */
-  .toggle{position:relative;display:inline-block;width:44px;height:24px}
-  .toggle input{opacity:0;width:0;height:0}
-  .slider{position:absolute;cursor:pointer;inset:0;background:var(--border2);border-radius:24px;transition:.3s}
-  .slider::before{content:'';position:absolute;height:18px;width:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s}
-  input:checked+.slider{background:var(--accent)}
-  input:checked+.slider::before{transform:translateX(20px)}
+  .logo-area .brand {
+    font-size: 1.8rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.5px;
+  }
 
-  /* Alert */
-  .alert{padding:14px 18px;border-radius:12px;font-size:14px;margin-bottom:20px;display:flex;align-items:flex-start;gap:12px}
-  .alert-info{background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);color:var(--accent)}
-  .alert-success{background:rgba(0,255,170,0.08);border:1px solid rgba(0,255,170,0.2);color:var(--accent3)}
-  .alert-danger{background:rgba(255,68,102,0.08);border:1px solid rgba(255,68,102,0.2);color:var(--danger)}
-  .alert-warn{background:rgba(255,170,0,0.08);border:1px solid rgba(255,170,0,0.25);color:var(--warn)}
+  .logo-area .subtitle {
+    font-size: 0.8rem;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    margin-top: 4px;
+  }
 
-  /* Tabs */
-  .tabs{display:flex;gap:4px;background:var(--bg2);padding:4px;border-radius:10px;margin-bottom:24px;width:fit-content}
-  .tab{padding:8px 20px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;color:var(--text2);transition:.2s}
-  .tab.active{background:var(--surface2);color:var(--text)}
+  .form-group {
+    margin-bottom: 1.2rem;
+  }
 
-  /* Progress */
-  .progress{height:6px;background:var(--surface2);border-radius:99px;overflow:hidden;margin-top:8px}
-  .progress-bar{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent3));border-radius:99px;transition:width .5s ease}
-  .tag{display:inline-block;background:var(--surface2);border-radius:6px;padding:2px 8px;font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--text2)}
-  .copy-btn{background:none;border:none;color:var(--text3);cursor:pointer;padding:4px 8px;border-radius:6px;transition:.2s;font-size:13px}
-  .copy-btn:hover{color:var(--accent);background:rgba(0,212,255,0.08)}
-  .search-bar{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:0 16px}
-  .search-bar input{background:none;border:none;outline:none;padding:10px 0;color:var(--text);font-size:14px;font-family:'Syne',sans-serif;width:200px}
+  .form-group label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
 
-  /* Modal */
-  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);z-index:1000;display:none;align-items:center;justify-content:center}
-  .modal-overlay.active{display:flex}
-  .modal{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:36px;width:100%;max-width:460px;position:relative;animation:modalIn .25s ease}
-  @keyframes modalIn{from{opacity:0;transform:scale(0.96)translateY(16px)}to{opacity:1;transform:scale(1)translateY(0)}}
-  .modal-close{position:absolute;top:14px;right:14px;background:none;border:none;color:var(--text3);cursor:pointer;font-size:18px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:8px;transition:.2s}
-  .modal-close:hover{background:var(--surface);color:var(--text)}
-  .modal h2{font-size:22px;font-weight:800;margin-bottom:6px}
-  .modal .subtitle{color:var(--text2);font-size:13px;margin-bottom:28px}
+  .form-group input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+    transition: border-color 0.2s;
+    outline: none;
+  }
 
-  /* Firewall specific */
-  .fw-rule{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border)}
-  .fw-rule:last-child{border-bottom:none}
-  .fw-rule-info{flex:1}
-  .fw-rule-name{font-size:14px;font-weight:600;margin-bottom:3px}
-  .fw-rule-desc{font-size:12px;color:var(--text3)}
-  .threat-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:12px;margin-bottom:8px}
-  .threat-item.high{background:rgba(255,68,102,0.08);border:1px solid rgba(255,68,102,0.2)}
-  .threat-item.med{background:rgba(255,170,0,0.08);border:1px solid rgba(255,170,0,0.2)}
-  .threat-item.low{background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.15)}
-  .threat-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
-  .threat-dot.high{background:var(--danger);box-shadow:0 0 8px var(--danger)}
-  .threat-dot.med{background:var(--warn);box-shadow:0 0 8px var(--warn)}
-  .threat-dot.low{background:var(--accent);box-shadow:0 0 8px var(--accent)}
+  .form-group input:focus {
+    border-color: var(--accent);
+  }
 
-  /* App card */
-  .app-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;transition:.3s;cursor:pointer;margin-bottom:16px}
-  .app-card:hover{border-color:var(--border2);transform:translateY(-2px)}
+  .btn-primary {
+    width: 100%;
+    background: linear-gradient(135deg, var(--accent), #8b83ff);
+    border: none;
+    border-radius: 8px;
+    padding: 11px;
+    color: white;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    margin-top: 0.5rem;
+  }
 
-  /* Toast */
-  #toast{position:fixed;bottom:30px;right:30px;z-index:9999;display:flex;flex-direction:column;gap:10px}
-  .toast-msg{background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:14px 20px;font-size:14px;animation:toastIn .3s ease;display:flex;align-items:center;gap:10px;min-width:280px;box-shadow:0 8px 32px rgba(0,0,0,0.4)}
-  @keyframes toastIn{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:translateX(0)}}
-  .toast-msg.success{border-left:3px solid var(--accent3)}
-  .toast-msg.error{border-left:3px solid var(--danger)}
-  .toast-msg.info{border-left:3px solid var(--accent)}
-  .toast-msg.warn{border-left:3px solid var(--warn)}
+  .btn-primary:hover { opacity: 0.9; }
+  .btn-primary:active { transform: scale(0.98); }
 
-  /* Divider */
-  .divider{height:1px;background:var(--border);margin:20px 0}
+  .error-msg {
+    background: rgba(255,77,109,0.1);
+    border: 1px solid rgba(255,77,109,0.3);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.82rem;
+    color: var(--danger);
+    margin-bottom: 1rem;
+    display: none;
+  }
+
+  /* ===== DASHBOARD VIEW ===== */
+  #dashView {
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  .topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 1.5rem;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .topbar .brand {
+    font-size: 1.2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .user-badge {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 12px 4px 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.82rem;
+    font-weight: 600;
+  }
+
+  .user-avatar {
+    width: 26px; height: 26px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.7rem; font-weight: 700; color: white;
+  }
+
+  .btn-logout {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 5px 12px;
+    color: var(--muted);
+    font-family: 'Syne', sans-serif;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-logout:hover { border-color: var(--danger); color: var(--danger); }
+
+  .dash-body {
+    display: flex;
+    flex: 1;
+  }
+
+  /* ===== SIDEBAR ===== */
+  .sidebar {
+    width: 220px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 1.5rem 0;
+    flex-shrink: 0;
+  }
+
+  .nav-section {
+    padding: 0 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .nav-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    padding: 0 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--muted);
+    transition: all 0.15s;
+    margin-bottom: 2px;
+  }
+
+  .nav-item i { font-size: 17px; }
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { background: rgba(108,99,255,0.15); color: var(--accent); }
+  .nav-item .badge {
+    margin-left: auto;
+    background: var(--accent);
+    color: white;
+    font-size: 0.65rem;
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-weight: 700;
+  }
+
+  /* ===== MAIN CONTENT ===== */
+  .main-content {
+    flex: 1;
+    padding: 1.5rem;
+    overflow-y: auto;
+  }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+  }
+
+  .page-title {
+    font-size: 1.4rem;
+    font-weight: 800;
+  }
+
+  /* ===== STATS GRID ===== */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 1.5rem;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem 1.2rem;
+  }
+
+  .stat-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+  }
+
+  .stat-value {
+    font-size: 1.8rem;
+    font-weight: 800;
+    line-height: 1;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .stat-value.green { color: var(--success); }
+  .stat-value.accent { color: var(--accent); }
+  .stat-value.warn { color: var(--warn); }
+  .stat-value.danger { color: var(--danger); }
+
+  /* ===== TABLE ===== */
+  .table-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .table-header {
+    padding: 1rem 1.2rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .table-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+  }
+
+  th {
+    background: var(--surface2);
+    padding: 10px 16px;
+    text-align: left;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  td {
+    padding: 10px 16px;
+    border-top: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+  }
+
+  tr:hover td { background: var(--surface2); }
+
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    font-family: 'Syne', sans-serif;
+  }
+
+  .status-pill.active { background: rgba(64,201,122,0.15); color: var(--success); }
+  .status-pill.inactive { background: rgba(107,107,138,0.15); color: var(--muted); }
+  .status-pill.banned { background: rgba(255,77,109,0.15); color: var(--danger); }
+  .status-pill.expired { background: rgba(255,169,77,0.15); color: var(--warn); }
+
+  .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .action-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 3px 8px;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--text);
+    margin-right: 4px;
+  }
+
+  .action-btn:hover { background: var(--surface2); }
+  .action-btn.danger { color: var(--danger); border-color: rgba(255,77,109,0.3); }
+  .action-btn.danger:hover { background: rgba(255,77,109,0.1); }
+  .action-btn.success { color: var(--success); border-color: rgba(64,201,122,0.3); }
+  .action-btn.success:hover { background: rgba(64,201,122,0.1); }
+
+  /* ===== GENERATE KEY FORM ===== */
+  .form-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .field label {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+
+  .field input, .field select {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .field input:focus, .field select:focus { border-color: var(--accent); }
+  .field select option { background: var(--surface2); }
+
+  .btn-gen {
+    background: linear-gradient(135deg, var(--accent2), #00a88a);
+    border: none;
+    border-radius: 8px;
+    padding: 9px 20px;
+    color: white;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+
+  .btn-gen:hover { opacity: 0.85; }
+
+  .generated-key-box {
+    background: var(--bg);
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--accent2);
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    display: none;
+  }
+
+  .copy-btn {
+    background: rgba(108,99,255,0.15);
+    border: none;
+    border-radius: 6px;
+    padding: 4px 10px;
+    color: var(--accent);
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: 'Syne', sans-serif;
+  }
+
+  /* ===== TOAST ===== */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 18px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    z-index: 9999;
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.success { border-color: rgba(64,201,122,0.4); color: var(--success); }
+  .toast.error { border-color: rgba(255,77,109,0.4); color: var(--danger); }
+
+  /* ===== HWID SECTION ===== */
+  .hwid-tag {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-size: 0.72rem;
+    color: var(--muted);
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block;
+  }
+
+  .hwid-tag.locked { color: var(--warn); border-color: rgba(255,169,77,0.3); }
+  .hwid-tag.none { color: var(--muted); font-style: italic; }
+
+  /* ===== MODAL ===== */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+
+  .modal-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    width: 420px;
+    max-width: 90vw;
+    transform: scale(0.95);
+    transition: transform 0.2s;
+  }
+
+  .modal-overlay.open .modal { transform: scale(1); }
+
+  .modal h3 {
+    font-size: 1.05rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+  }
+
+  .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 1.2rem;
+  }
+
+  .btn-cancel {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 7px 16px;
+    color: var(--muted);
+    font-family: 'Syne', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .btn-confirm {
+    background: var(--danger);
+    border: none;
+    border-radius: 8px;
+    padding: 7px 16px;
+    color: white;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  /* ===== API DOC ===== */
+  .code-block {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--accent2);
+    overflow-x: auto;
+    margin: 0.8rem 0;
+    line-height: 1.6;
+  }
+
+  .endpoint-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.2rem;
+    margin-bottom: 1rem;
+  }
+
+  .method-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    font-family: 'JetBrains Mono', monospace;
+    margin-right: 8px;
+  }
+
+  .method-badge.post { background: rgba(64,201,122,0.2); color: var(--success); }
+  .method-badge.get { background: rgba(108,99,255,0.2); color: var(--accent); }
+
+  .endpoint-path {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.88rem;
+    color: var(--text);
+  }
+
+  .endpoint-desc {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-top: 6px;
+  }
 </style>
 </head>
 <body>
 
-<!-- ===== LOGIN SCREEN ===== -->
-<div id="login-screen">
-  <div class="login-box" id="login-box">
-    <span class="lock-icon">🔐</span>
-    <div class="login-logo">
-      <div class="logo-icon">🛡️</div>
-      NexAuth <span class="owner-badge">Private</span>
+<!-- ===== LOGIN VIEW ===== -->
+<div class="view active" id="loginView">
+  <div class="login-box">
+    <div class="logo-area">
+      <div class="brand">⬡ KeyShield</div>
+      <div class="subtitle">License Key Management System</div>
     </div>
-    <label class="login-label">Username</label>
-    <input class="login-input" type="text" id="inp-user" placeholder="Enter username" autocomplete="off">
-    <label class="login-label">Password</label>
-    <input class="login-input" type="password" id="inp-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
-    <button class="login-btn" onclick="doLogin()">Access Panel →</button>
-    <div class="login-err" id="login-err">❌ Wrong credentials. Access denied.</div>
-    <div class="attempt-warn" id="attempt-warn"></div>
+    <div class="error-msg" id="loginError">Username atau password salah.</div>
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" id="loginUser" placeholder="masukkan username..." autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="loginPass" placeholder="••••••••••">
+    </div>
+    <button class="btn-primary" onclick="doLogin()">Masuk ke Panel</button>
+    <div style="margin-top:1rem; text-align:center; font-size:0.75rem; color:var(--muted);">KeyShield v1.0 &mdash; Admin Panel</div>
   </div>
 </div>
 
-<!-- ===== MODALS ===== -->
-<!-- Generate Keys Modal -->
-<div class="modal-overlay" id="modal-genkey">
-  <div class="modal" style="max-width:520px">
-    <button class="modal-close" onclick="closeModal('genkey')">✕</button>
-    <h2>Generate Keys</h2><p class="subtitle">Create new license keys</p>
-    <div class="form-row">
-      <div class="form-group"><label>Number of Keys</label><input type="number" id="gen-count" value="1" min="1" max="500"></div>
-      <div class="form-group"><label>Prefix</label><input type="text" id="gen-prefix" placeholder="NEXAUTH-"></div>
-    </div>
-    <div class="form-row">
-      <div class="form-group"><label>Duration</label>
-        <select id="gen-duration">
-          <option value="1d">1 Day</option><option value="7d">7 Days</option>
-          <option value="30d" selected>30 Days</option><option value="90d">90 Days</option>
-          <option value="365d">1 Year</option><option value="lifetime">Lifetime</option>
-        </select>
+<!-- ===== DASHBOARD VIEW ===== -->
+<div class="view" id="dashView">
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="brand">⬡ KeyShield</div>
+    <div class="topbar-right">
+      <div class="user-badge">
+        <div class="user-avatar">C</div>
+        Chikubi
       </div>
-      <div class="form-group"><label>Max Uses</label><input type="number" id="gen-uses" value="1" min="1"></div>
-    </div>
-    <div class="form-group"><label>Note</label><input type="text" id="gen-note" placeholder="e.g. Batch A, VIP Client..."></div>
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
-      <label class="toggle"><input type="checkbox" id="gen-hwid"><span class="slider"></span></label>
-      <span style="font-size:14px">Enable HWID Lock</span>
-    </div>
-    <button class="btn btn-primary btn-full" onclick="generateKeys()">⚡ Generate Keys</button>
-  </div>
-</div>
-
-<!-- Add User Modal -->
-<div class="modal-overlay" id="modal-adduser">
-  <div class="modal">
-    <button class="modal-close" onclick="closeModal('adduser')">✕</button>
-    <h2>Add User</h2><p class="subtitle">Manually create a user account</p>
-    <div class="form-group"><label>Username</label><input type="text" id="add-username" placeholder="username123"></div>
-    <div class="form-group"><label>Email</label><input type="email" id="add-email" placeholder="user@example.com"></div>
-    <div class="form-group"><label>Password</label><input type="password" id="add-pass" placeholder="Set password"></div>
-    <div class="form-row">
-      <div class="form-group"><label>Role</label>
-        <select id="add-role"><option>user</option><option>vip</option><option>admin</option></select>
-      </div>
-      <div class="form-group"><label>Assign Key (optional)</label><input type="text" id="add-key" placeholder="NEXAUTH-..."></div>
-    </div>
-    <button class="btn btn-primary btn-full" onclick="addUser()">Add User</button>
-  </div>
-</div>
-
-<!-- New App Modal -->
-<div class="modal-overlay" id="modal-newapp">
-  <div class="modal">
-    <button class="modal-close" onclick="closeModal('newapp')">✕</button>
-    <h2>New Application</h2><p class="subtitle">Register a new app to protect</p>
-    <div class="form-group"><label>App Name</label><input type="text" id="new-app-name" placeholder="My App"></div>
-    <div class="form-group"><label>Version</label><input type="text" id="new-app-ver" placeholder="1.0.0"></div>
-    <div class="form-group"><label>Description</label><textarea id="new-app-desc" placeholder="What does this app do?"></textarea></div>
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
-      <label class="toggle"><input type="checkbox" id="new-app-hwid" checked><span class="slider"></span></label>
-      <span style="font-size:14px">Require HWID Binding</span>
-    </div>
-    <button class="btn btn-primary btn-full" onclick="createApp()">Create Application</button>
-  </div>
-</div>
-
-<!-- Add Firewall Rule Modal -->
-<div class="modal-overlay" id="modal-fwrule">
-  <div class="modal">
-    <button class="modal-close" onclick="closeModal('fwrule')">✕</button>
-    <h2>Add Firewall Rule</h2><p class="subtitle">Block IPs, HWIDs, or user agents</p>
-    <div class="form-group"><label>Rule Type</label>
-      <select id="fw-type"><option value="ip">Block IP Address</option><option value="hwid">Block HWID</option><option value="country">Block Country</option><option value="ua">Block User Agent</option></select>
-    </div>
-    <div class="form-group"><label>Value</label><input type="text" id="fw-val" placeholder="e.g. 192.168.1.1 or HWID-XXXX"></div>
-    <div class="form-group"><label>Reason</label><input type="text" id="fw-reason" placeholder="Why are you blocking this?"></div>
-    <div class="form-group"><label>Action</label>
-      <select id="fw-action"><option value="block">Block & Deny</option><option value="ban">Ban + Log</option><option value="challenge">Challenge (CAPTCHA)</option></select>
-    </div>
-    <button class="btn btn-danger btn-full" onclick="addFwRule()">🔒 Add Rule</button>
-  </div>
-</div>
-
-<!-- Change Password Modal -->
-<div class="modal-overlay" id="modal-chpass">
-  <div class="modal">
-    <button class="modal-close" onclick="closeModal('chpass')">✕</button>
-    <h2>Change Owner Password</h2><p class="subtitle">Update your private panel password</p>
-    <div class="form-group"><label>Current Password</label><input type="password" id="cp-old" placeholder="Current password"></div>
-    <div class="form-group"><label>New Password</label><input type="password" id="cp-new" placeholder="New password (min 8 chars)"></div>
-    <div class="form-group"><label>Confirm New Password</label><input type="password" id="cp-confirm" placeholder="Confirm new password"></div>
-    <button class="btn btn-primary btn-full" onclick="changePassword()">Update Password</button>
-  </div>
-</div>
-
-<!-- ===== DASHBOARD ===== -->
-<div id="dashboard">
-  <div class="sidebar">
-    <div class="sidebar-logo">
-      <div class="logo-icon" style="width:28px;height:28px;font-size:14px">🔐</div>
-      NexAuth
-    </div>
-    <div class="sidebar-user">
-      <div class="avatar">O</div>
-      <div class="user-info">
-        <div class="user-name">Owner</div>
-        <div class="user-role">Full Access</div>
-      </div>
-    </div>
-    <nav class="sidebar-nav">
-      <div class="nav-section">Main</div>
-      <div class="nav-item active" onclick="showPage('overview')"><span class="ni">📊</span>Overview</div>
-      <div class="nav-item" onclick="showPage('apps')"><span class="ni">📦</span>Applications</div>
-      <div class="nav-section">Management</div>
-      <div class="nav-item" onclick="showPage('keys')"><span class="ni">🔑</span>License Keys</div>
-      <div class="nav-item" onclick="showPage('users')"><span class="ni">👥</span>Users</div>
-      <div class="nav-item" onclick="showPage('files')"><span class="ni">🔒</span>File Locker</div>
-      <div class="nav-section">Security</div>
-      <div class="nav-item" onclick="showPage('firewall')"><span class="ni">🛡️</span>Firewall</div>
-      <div class="nav-item" onclick="showPage('threats')"><span class="ni">⚠️</span>Threat Monitor</div>
-      <div class="nav-section">Monitoring</div>
-      <div class="nav-item" onclick="showPage('logs')"><span class="ni">📋</span>Logs</div>
-      <div class="nav-item" onclick="showPage('analytics')"><span class="ni">📈</span>Analytics</div>
-      <div class="nav-section">Developer</div>
-      <div class="nav-item" onclick="showPage('api')"><span class="ni">⚡</span>API Reference</div>
-      <div class="nav-item" onclick="showPage('settings')"><span class="ni">⚙️</span>Settings</div>
-    </nav>
-    <div class="sidebar-bottom">
-      <button class="btn btn-outline btn-sm" style="width:100%" onclick="logout()">← Logout</button>
+      <button class="btn-logout" onclick="doLogout()">Keluar</button>
     </div>
   </div>
 
-  <div class="main">
-    <div class="topbar">
-      <h2 id="page-title">Overview</h2>
-      <div class="topbar-actions">
-        <div class="search-bar"><span>🔍</span><input type="text" placeholder="Search..."></div>
-        <div id="fw-status-indicator" style="display:flex;align-items:center;gap:6px;background:rgba(0,255,170,0.08);border:1px solid rgba(0,255,170,0.2);border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;color:var(--accent3);cursor:pointer" onclick="showPage('firewall')">
-          🛡️ Firewall ON
+  <div class="dash-body">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="nav-section">
+        <div class="nav-label">Menu</div>
+        <div class="nav-item active" onclick="goPage('overview')">
+          <i class="ti ti-layout-dashboard"></i> Overview
+        </div>
+        <div class="nav-item" onclick="goPage('keys')">
+          <i class="ti ti-key"></i> Kelola Key
+          <span class="badge" id="keyCount">0</span>
+        </div>
+        <div class="nav-item" onclick="goPage('generate')">
+          <i class="ti ti-sparkles"></i> Generate Key
+        </div>
+        <div class="nav-item" onclick="goPage('hwid')">
+          <i class="ti ti-cpu"></i> HWID Lock
+        </div>
+        <div class="nav-item" onclick="goPage('api')">
+          <i class="ti ti-code"></i> API Docs
         </div>
       </div>
     </div>
 
-    <div class="content">
+    <!-- Main -->
+    <div class="main-content">
 
-      <!-- OVERVIEW -->
+      <!-- OVERVIEW PAGE -->
       <div class="page active" id="page-overview">
-        <div class="grid-4">
-          <div class="stat-card blue"><div class="stat-card-icon">🔑</div><div class="stat-card-num" id="ov-keys">0</div><div class="stat-card-label">Total Keys</div><div class="stat-card-change">Active license pool</div></div>
-          <div class="stat-card green"><div class="stat-card-icon">👥</div><div class="stat-card-num" id="ov-users">0</div><div class="stat-card-label">Registered Users</div><div class="stat-card-change">All time</div></div>
-          <div class="stat-card yellow"><div class="stat-card-icon">⚡</div><div class="stat-card-num" id="ov-auths">1.2K</div><div class="stat-card-label">Authentications</div><div class="stat-card-change">↑ 340 today</div></div>
-          <div class="stat-card red"><div class="stat-card-icon">🚫</div><div class="stat-card-num" id="ov-blocked">0</div><div class="stat-card-label">Blocked by Firewall</div><div class="stat-card-change">Protected</div></div>
+        <div class="page-header">
+          <div class="page-title">Overview</div>
+          <div style="font-size:0.8rem; color:var(--muted); font-family:'JetBrains Mono',monospace;" id="currentTime"></div>
         </div>
-        <div class="grid-2">
-          <div class="card">
-            <div class="card-header"><span class="card-title">Recent Auth Logs</span><span class="badge badge-green">Live</span></div>
-            <div class="table-wrap">
-              <table><thead><tr><th>User</th><th>Status</th><th>IP</th><th>Time</th></tr></thead>
-              <tbody id="recent-logs"></tbody></table>
-            </div>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Total Key</div>
+            <div class="stat-value accent" id="st-total">0</div>
           </div>
-          <div class="card">
-            <div class="card-header"><span class="card-title">Key Usage</span></div>
-            <div id="key-usage-list"></div>
+          <div class="stat-card">
+            <div class="stat-label">Key Aktif</div>
+            <div class="stat-value green" id="st-active">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">HWID Terkunci</div>
+            <div class="stat-value warn" id="st-hwid">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Key Diblokir</div>
+            <div class="stat-value danger" id="st-banned">0</div>
           </div>
         </div>
-        <div class="card">
-          <div class="card-header"><span class="card-title">🛡️ Firewall Summary</span><button class="btn btn-outline btn-sm" onclick="showPage('firewall')">View All Rules</button></div>
-          <div id="fw-summary"></div>
+
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-title">Aktivitas Terbaru</div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Waktu</th>
+                <th>Key</th>
+                <th>Aksi</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="activityLog">
+              <tr><td colspan="4" style="text-align:center; color:var(--muted); padding:2rem;">Belum ada aktivitas</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
-      <!-- APPS -->
-      <div class="page" id="page-apps">
-        <div style="display:flex;justify-content:flex-end;margin-bottom:20px">
-          <button class="btn btn-primary" onclick="openModal('newapp')">+ New Application</button>
-        </div>
-        <div id="apps-list"></div>
-      </div>
-
-      <!-- KEYS -->
+      <!-- KEYS PAGE -->
       <div class="page" id="page-keys">
-        <div style="display:flex;gap:12px;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap">
-          <div class="tabs">
-            <div class="tab active" onclick="filterKeys('all',this)">All</div>
-            <div class="tab" onclick="filterKeys('active',this)">Active</div>
-            <div class="tab" onclick="filterKeys('used',this)">Used</div>
-            <div class="tab" onclick="filterKeys('expired',this)">Expired</div>
-            <div class="tab" onclick="filterKeys('banned',this)">Banned</div>
-          </div>
-          <div style="display:flex;gap:10px">
-            <button class="btn btn-outline btn-sm" onclick="exportKeys()">↓ Export CSV</button>
-            <button class="btn btn-primary btn-sm" onclick="openModal('genkey')">+ Generate Keys</button>
-          </div>
+        <div class="page-header">
+          <div class="page-title">Kelola Key</div>
+          <button class="btn-gen" onclick="goPage('generate')">+ Generate Key Baru</button>
         </div>
-        <div class="card" style="margin-bottom:0">
-          <div class="table-wrap">
-            <table><thead><tr><th>Key</th><th>Status</th><th>Uses</th><th>Expires</th><th>HWID</th><th>Note</th><th>Actions</th></tr></thead>
-            <tbody id="keys-tbody"></tbody></table>
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-title">Semua License Key</div>
+            <input type="text" id="searchKey" placeholder="Cari key..." oninput="renderKeysTable()" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:5px 10px;color:var(--text);font-size:0.8rem;font-family:'JetBrains Mono',monospace;width:200px;outline:none;">
           </div>
-        </div>
-      </div>
-
-      <!-- USERS -->
-      <div class="page" id="page-users">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-          <div class="tabs">
-            <div class="tab active" onclick="filterUsers('all',this)">All</div>
-            <div class="tab" onclick="filterUsers('active',this)">Active</div>
-            <div class="tab" onclick="filterUsers('banned',this)">Banned</div>
-          </div>
-          <button class="btn btn-primary btn-sm" onclick="openModal('adduser')">+ Add User</button>
-        </div>
-        <div class="card" style="margin-bottom:0">
-          <div class="table-wrap">
-            <table><thead><tr><th>User</th><th>Email</th><th>Role</th><th>Status</th><th>Last Auth</th><th>Actions</th></tr></thead>
-            <tbody id="users-tbody"></tbody></table>
-          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Key</th>
+                <th>Durasi</th>
+                <th>Status</th>
+                <th>HWID</th>
+                <th>Dibuat</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="keysTable"></tbody>
+          </table>
         </div>
       </div>
 
-      <!-- FILES -->
-      <div class="page" id="page-files">
-        <div class="alert alert-info">🔒 <div>Files dikunci dengan enkripsi AES-256. Hanya user dengan license key valid yang bisa download dan mendekripsi.</div></div>
-        <div class="grid-2">
-          <div class="card">
-            <div class="card-header"><span class="card-title">Upload & Lock File</span></div>
-            <div style="border:2px dashed var(--border2);border-radius:12px;padding:40px;text-align:center;cursor:pointer;transition:.2s" id="dropzone" onclick="document.getElementById('file-input').click()" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)'">
-              <div style="font-size:44px;margin-bottom:12px">📂</div>
-              <div style="font-weight:700;margin-bottom:6px">Drop file atau klik untuk upload</div>
-              <div style="font-size:13px;color:var(--text3)">Semua tipe file didukung</div>
-              <input type="file" id="file-input" style="display:none" onchange="lockFile(this)">
+      <!-- GENERATE PAGE -->
+      <div class="page" id="page-generate">
+        <div class="page-header">
+          <div class="page-title">Generate Key</div>
+        </div>
+        <div class="form-card">
+          <div style="font-size:0.9rem;font-weight:700;margin-bottom:1rem;color:var(--text);">Buat License Key Baru</div>
+          <div class="form-row">
+            <div class="field">
+              <label>Jumlah Key</label>
+              <input type="number" id="genCount" value="1" min="1" max="100">
             </div>
-            <div style="margin-top:16px">
-              <div class="form-group"><label>Required License Level</label>
-                <select><option>Any valid license</option><option>Premium only</option><option>Specific key</option></select>
-              </div>
-              <div class="form-group"><label>Encryption Key (auto-generated)</label>
-                <div style="display:flex;gap:8px">
-                  <input type="text" id="enc-key-preview" value="AES256-..." readonly style="font-family:'JetBrains Mono',monospace;font-size:12px">
-                  <button class="btn btn-outline btn-sm" onclick="regenEncKey()">🔄</button>
-                </div>
-              </div>
+            <div class="field">
+              <label>Durasi</label>
+              <select id="genDuration">
+                <option value="1d">1 Hari</option>
+                <option value="7d">7 Hari</option>
+                <option value="30d">30 Hari</option>
+                <option value="90d">90 Hari</option>
+                <option value="365d">1 Tahun</option>
+                <option value="lifetime">Lifetime</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Prefix</label>
+              <input type="text" id="genPrefix" value="CHIK" maxlength="6" placeholder="e.g. CHIK">
             </div>
           </div>
-          <div class="card">
-            <div class="card-header"><span class="card-title">Locked Files</span></div>
-            <div id="locked-files-list"></div>
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+            <input type="checkbox" id="hwidLockOpt" style="width:auto;accent-color:var(--accent);">
+            <label for="hwidLockOpt" style="font-size:0.85rem;font-weight:600;color:var(--text);cursor:pointer;">Lock HWID saat pertama kali digunakan (1 Key = 1 PC)</label>
+          </div>
+          <button class="btn-gen" onclick="doGenerate()"><i class="ti ti-sparkles"></i> Generate</button>
+          <div class="generated-key-box" id="genResult">
+            <span id="genKeyText"></span>
+            <button class="copy-btn" onclick="copyKey()">COPY</button>
           </div>
         </div>
       </div>
 
-      <!-- FIREWALL -->
-      <div class="page" id="page-firewall">
-        <div class="alert alert-info">🛡️ <div><strong>Firewall aktif</strong> — Semua request masuk difilter sebelum mencapai sistem autentikasi. Aturan dijalankan secara berurutan dari atas ke bawah.</div></div>
-        <div class="grid-2">
-          <div>
-            <div class="card">
-              <div class="card-header">
-                <span class="card-title">Global Firewall</span>
-                <div style="display:flex;align-items:center;gap:10px">
-                  <span id="fw-global-label" style="font-size:13px;color:var(--accent3)">● AKTIF</span>
-                  <label class="toggle"><input type="checkbox" id="fw-global-toggle" checked onchange="toggleFirewall()"><span class="slider"></span></label>
-                </div>
-              </div>
-              <div id="fw-rules-list"></div>
-              <div style="margin-top:16px">
-                <button class="btn btn-danger btn-sm" style="width:100%" onclick="openModal('fwrule')">+ Tambah Aturan Blokir</button>
-              </div>
-            </div>
+      <!-- HWID PAGE -->
+      <div class="page" id="page-hwid">
+        <div class="page-header">
+          <div class="page-title">HWID Lock Manager</div>
+        </div>
+        <div class="form-card" style="margin-bottom:1rem;">
+          <div style="font-size:0.82rem;color:var(--muted);margin-bottom:1rem;line-height:1.6;">
+            <i class="ti ti-info-circle" style="font-size:15px;vertical-align:-2px;margin-right:4px;color:var(--accent);"></i>
+            HWID (Hardware ID) dikunci otomatis saat key pertama kali digunakan di sebuah PC. Key yang sama tidak bisa dipakai di PC lain. Anda bisa reset HWID dari sini.
           </div>
-          <div>
-            <div class="card" style="margin-bottom:20px">
-              <div class="card-header"><span class="card-title">Pengaturan Proteksi</span></div>
-              <div id="fw-settings-list"></div>
-            </div>
-            <div class="card">
-              <div class="card-header"><span class="card-title">IP yang Diblokir</span><button class="btn btn-outline btn-sm" onclick="clearBlockedIPs()">Clear All</button></div>
-              <div id="blocked-ip-list" style="font-family:'JetBrains Mono',monospace;font-size:12px"></div>
-            </div>
-          </div>
+          <table>
+            <thead>
+              <tr><th>Key</th><th>HWID Terkunci</th><th>Status</th><th>Aksi</th></tr>
+            </thead>
+            <tbody id="hwidTable"></tbody>
+          </table>
         </div>
       </div>
 
-      <!-- THREAT MONITOR -->
-      <div class="page" id="page-threats">
-        <div class="grid-4" style="margin-bottom:28px">
-          <div class="stat-card red"><div class="stat-card-icon">🚨</div><div class="stat-card-num" id="th-high">0</div><div class="stat-card-label">High Threats</div></div>
-          <div class="stat-card yellow"><div class="stat-card-icon">⚠️</div><div class="stat-card-num" id="th-med">0</div><div class="stat-card-label">Medium Threats</div></div>
-          <div class="stat-card blue"><div class="stat-card-icon">ℹ️</div><div class="stat-card-num" id="th-low">0</div><div class="stat-card-label">Low Threats</div></div>
-          <div class="stat-card green"><div class="stat-card-icon">🛡️</div><div class="stat-card-num" id="th-blocked">0</div><div class="stat-card-label">Auto-Blocked</div></div>
-        </div>
-        <div class="grid-2">
-          <div class="card">
-            <div class="card-header"><span class="card-title">Active Threats</span><span class="badge badge-red">Live</span></div>
-            <div id="threat-list"></div>
-          </div>
-          <div class="card">
-            <div class="card-header"><span class="card-title">Auto-Block Rules</span></div>
-            <div id="autoblock-list"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- LOGS -->
-      <div class="page" id="page-logs">
-        <div class="card" style="margin-bottom:0">
-          <div class="card-header"><span class="card-title">Authentication Logs</span>
-            <div style="display:flex;gap:8px">
-              <button class="btn btn-outline btn-sm" onclick="clearLogs()">Clear</button>
-              <button class="btn btn-outline btn-sm" onclick="exportLogs()">↓ Export</button>
-            </div>
-          </div>
-          <div class="table-wrap">
-            <table><thead><tr><th>Time</th><th>Type</th><th>User/Key</th><th>IP</th><th>HWID</th><th>Result</th><th>Details</th></tr></thead>
-            <tbody id="logs-tbody"></tbody></table>
-          </div>
-        </div>
-      </div>
-
-      <!-- ANALYTICS -->
-      <div class="page" id="page-analytics">
-        <div class="grid-4" style="margin-bottom:28px">
-          <div class="stat-card blue"><div class="stat-card-icon">📈</div><div class="stat-card-num">98.7%</div><div class="stat-card-label">Auth Success Rate</div></div>
-          <div class="stat-card green"><div class="stat-card-icon">⚡</div><div class="stat-card-num">42ms</div><div class="stat-card-label">Avg Response</div></div>
-          <div class="stat-card yellow"><div class="stat-card-icon">🌍</div><div class="stat-card-num">27</div><div class="stat-card-label">Countries</div></div>
-          <div class="stat-card red"><div class="stat-card-icon">🚫</div><div class="stat-card-num" id="an-blocked">0</div><div class="stat-card-label">Blocked Requests</div></div>
-        </div>
-        <div class="grid-2">
-          <div class="card">
-            <div class="card-header"><span class="card-title">Daily Authentications (7 days)</span></div>
-            <div id="chart-auths" style="padding:10px 0"></div>
-          </div>
-          <div class="card">
-            <div class="card-header"><span class="card-title">Top Countries</span></div>
-            <div id="chart-countries"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- API -->
+      <!-- API PAGE -->
       <div class="page" id="page-api">
-        <div class="grid-2">
-          <div>
-            <div class="card">
-              <div class="card-header"><span class="card-title">API Credentials (Owner)</span></div>
-              <div class="form-group"><label>Owner ID</label>
-                <div style="display:flex;gap:8px">
-                  <input type="text" id="owner-id-val" readonly style="font-family:'JetBrains Mono',monospace;font-size:12px">
-                  <button class="btn btn-outline btn-sm" onclick="copyText(document.getElementById('owner-id-val').value)">Copy</button>
-                </div>
-              </div>
-              <div class="form-group"><label>API Secret</label>
-                <div style="display:flex;gap:8px">
-                  <input type="password" id="api-secret-input" value="sk_priv_xxxxxxxxxxxxxxxxxxxxxxx" readonly>
-                  <button class="btn btn-outline btn-sm" onclick="toggleSecret()">Show</button>
-                  <button class="btn btn-outline btn-sm" onclick="copyText('sk_priv_xxxxxxxxxxxxxxxxxxxxxxx')">Copy</button>
-                </div>
-              </div>
-              <button class="btn btn-danger btn-sm" onclick="regenApiKey()">🔄 Regenerate Secret</button>
-            </div>
-            <div class="card" style="margin-top:0">
-              <div class="card-header"><span class="card-title">Endpoints</span></div>
-              <div id="endpoint-list"></div>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-header"><span class="card-title">Code Example</span>
-              <div class="tabs" style="margin:0">
-                <div class="tab active" onclick="showCodeTab('python',this)">Python</div>
-                <div class="tab" onclick="showCodeTab('csharp',this)">C#</div>
-                <div class="tab" onclick="showCodeTab('js',this)">JS</div>
-              </div>
-            </div>
-            <pre id="code-block" style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:20px;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.8;overflow-x:auto;color:var(--accent3);white-space:pre-wrap"></pre>
-          </div>
+        <div class="page-header">
+          <div class="page-title">API Documentation</div>
         </div>
-      </div>
 
-      <!-- SETTINGS -->
-      <div class="page" id="page-settings">
-        <div class="grid-2">
-          <div>
-            <div class="card">
-              <div class="card-header"><span class="card-title">Owner Account</span></div>
-              <div class="alert alert-warn">⚠️ Ini adalah akun owner satu-satunya. Tidak ada akun lain yang bisa login.</div>
-              <div class="form-group"><label>Username</label><input type="text" value="owner" readonly style="color:var(--text3)"></div>
-              <div class="form-group"><label>Email (opsional)</label><input type="email" id="set-email" placeholder="your@email.com"></div>
-              <div style="display:flex;gap:10px">
-                <button class="btn btn-primary btn-sm" onclick="saveSettings()">Save</button>
-                <button class="btn btn-outline btn-sm" onclick="openModal('chpass')">🔑 Change Password</button>
-              </div>
-            </div>
-            <div class="card">
-              <div class="card-header"><span class="card-title">Session Security</span></div>
-              <div id="session-settings"></div>
-            </div>
-          </div>
-          <div>
-            <div class="card">
-              <div class="card-header"><span class="card-title">Notifications</span></div>
-              <div id="notif-settings"></div>
-            </div>
-            <div class="card">
-              <div class="card-header"><span class="card-title">Danger Zone</span></div>
-              <div class="alert alert-danger">⚠️ Aksi ini tidak dapat dibatalkan</div>
-              <div style="display:flex;flex-direction:column;gap:10px">
-                <button class="btn btn-danger btn-sm" onclick="confirmDanger('Hapus semua keys?','All keys deleted','error')">Delete All Keys</button>
-                <button class="btn btn-danger btn-sm" onclick="confirmDanger('Hapus semua users?','All users removed','error')">Remove All Users</button>
-                <button class="btn btn-danger btn-sm" onclick="confirmDanger('Reset semua data?','All data wiped','error')">Reset All Data</button>
-              </div>
-            </div>
-          </div>
+        <div style="background:rgba(108,99,255,0.08);border:1px solid rgba(108,99,255,0.25);border-radius:10px;padding:1rem 1.2rem;margin-bottom:1.5rem;font-size:0.82rem;line-height:1.7;color:var(--text);">
+          <strong>Base URL:</strong>
+          <span style="font-family:'JetBrains Mono',monospace;color:var(--accent2);margin-left:8px;">https://api.keyshield.yourdomain.com/v1</span><br>
+          Semua request menggunakan <code style="font-family:'JetBrains Mono',monospace;background:var(--bg);padding:1px 6px;border-radius:4px;">Content-Type: application/json</code>
         </div>
+
+        <div class="endpoint-card">
+          <div><span class="method-badge post">POST</span><span class="endpoint-path">/auth/verify</span></div>
+          <div class="endpoint-desc">Verifikasi license key & lock HWID secara otomatis</div>
+          <div class="code-block">{
+  "key": "CHIK-XXXX-XXXX-XXXX",
+  "hwid": "A1B2C3D4E5F6..."
+}
+
+// Response sukses:
+{
+  "valid": true,
+  "hwid_locked": true,
+  "expires": "2025-12-31",
+  "message": "Key valid"
+}
+
+// Response gagal:
+{
+  "valid": false,
+  "message": "HWID mismatch - key sudah dipakai di PC lain"
+}</div>
+        </div>
+
+        <div class="endpoint-card">
+          <div><span class="method-badge get">GET</span><span class="endpoint-path">/key/info?key=CHIK-XXXX</span></div>
+          <div class="endpoint-desc">Cek informasi key tanpa melakukan auth</div>
+          <div class="code-block">{
+  "key": "CHIK-XXXX-XXXX-XXXX",
+  "status": "active",
+  "expires": "2025-12-31",
+  "hwid": "locked",
+  "duration": "30d"
+}</div>
+        </div>
+
+        <div class="endpoint-card">
+          <div><span class="method-badge post">POST</span><span class="endpoint-path">/key/reset-hwid</span></div>
+          <div class="endpoint-desc">Reset HWID lock (butuh admin token)</div>
+          <div class="code-block">{
+  "admin_token": "YOUR_ADMIN_TOKEN",
+  "key": "CHIK-XXXX-XXXX-XXXX"
+}
+
+// Response:
+{
+  "success": true,
+  "message": "HWID berhasil direset"
+}</div>
+        </div>
+
+        <div style="margin-top:1.5rem;font-size:0.88rem;font-weight:700;margin-bottom:0.8rem;">Contoh Implementasi di Script Anda</div>
+        <div class="code-block">-- Lua / Roblox / Game Script Example
+local function checkLicense(key, hwid)
+  local res = HttpPost("https://api.keyshield.yourdomain.com/v1/auth/verify", {
+    key = key,
+    hwid = hwid  -- ambil dari GetHardwareId() atau fingerprint
+  })
+  local data = json.decode(res)
+  if data.valid then
+    print("License valid! Expires: " .. data.expires)
+    return true
+  else
+    print("License gagal: " .. data.message)
+    return false
+  end
+end</div>
       </div>
 
     </div>
   </div>
 </div>
 
-<div id="toast"></div>
+<!-- Modal Konfirmasi -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h3 id="modalTitle">Konfirmasi</h3>
+    <p id="modalBody" style="font-size:0.85rem;color:var(--muted);line-height:1.6;"></p>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Batal</button>
+      <button class="btn-confirm" id="modalConfirmBtn">Konfirmasi</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 
 <script>
-// ===== OWNER CREDENTIALS — GANTI DI SINI =====
-const OWNER_USER = 'Chikubi';       // ← ganti username kamu
-const OWNER_PASS = 'Chikubi2611';   // ← ganti password kamu
-// ==============================================
+const CREDS = { username: 'Chikubi', password: 'Chikubi2611' };
 
-let loginAttempts = 0;
-let lockoutUntil = 0;
+let keys = JSON.parse(localStorage.getItem('ks_keys') || '[]');
+let activity = JSON.parse(localStorage.getItem('ks_activity') || '[]');
 
-let state = {
-  keys:[], users:[], apps:[], logs:[], files:[],
-  fwRules:[], blockedIPs:[], threats:[],
-  fwEnabled:true,
-  fwSettings:{
-    bruteForce:true, hwidSpoof:true, rateLimit:true,
-    geoBlock:false, antiDebug:true, reqSigning:false
-  }
-};
-
-// ===== SEED DATA =====
-function seedData(){
-  const statuses=['active','used','expired','banned','active','active'];
-  for(let i=0;i<16;i++){
-    state.keys.push({id:i,key:genKeyStr(),status:statuses[i%6],uses:rn(0,2),maxUses:rn(1,3),
-      expires:i%5===0?'Lifetime':futureDate(rn(1,365)),hwid:i%3===0?hwid():null,
-      note:['Beta','VIP','','Batch A','Reseller'][i%5],created:pastDate(rn(0,60))});
-  }
-  const names=['alex_dev','sarah_k','mr_robot','ninja123','code_witch','dark_lord','pyro_x'];
-  const roles=['user','user','user','vip','user'];
-  for(let i=0;i<8;i++){
-    state.users.push({id:i,username:names[i%7],email:`user${i}@mail.com`,role:roles[i%5],
-      status:i===2?'banned':'active',joined:pastDate(rn(0,180)),lastAuth:pastDate(rn(0,7)),hwid:hwid()});
-  }
-  const appNames=['CrackShield Pro','DataVault','SecureScript','KeyLock Pro'];
-  for(let i=0;i<4;i++){
-    state.apps.push({id:i,name:appNames[i],version:`1.${i}.0`,keys:rn(10,200),users:rn(5,80),
-      auths:rn(100,2000),status:'active',hwidLock:true,created:pastDate(rn(0,90))});
-  }
-  const logTypes=['auth','key_check','ban','register','failed'];
-  for(let i=0;i<20;i++){
-    const t=logTypes[rn(0,4)];
-    state.logs.push({id:i,type:t,entity:t==='key_check'?genKeyStr():names[rn(0,6)],
-      ip:randIP(),hwid:hwid(),result:Math.random()>.2?'success':'fail',
-      details:['OK','Invalid HWID','Key expired','Success','Rate limited'][rn(0,4)],
-      time:pastDate(0,rn(0,86400))});
-  }
-  state.files=[
-    {name:'premium_module.dll',size:'2.4 MB',locked:true,downloads:142,created:pastDate(10)},
-    {name:'config_encrypted.bin',size:'14 KB',locked:true,downloads:89,created:pastDate(5)},
-    {name:'update_v2.exe',size:'18.7 MB',locked:true,downloads:310,created:pastDate(20)},
-  ];
-  state.fwRules=[
-    {id:1,type:'ip',value:'185.220.101.0/24',reason:'Tor exit node',action:'block',active:true,hits:342},
-    {id:2,type:'hwid',value:'HWID-DEADBEEF',reason:'Banned cracker',action:'ban',active:true,hits:17},
-    {id:3,type:'country',value:'Unknown',reason:'Anonymous proxy',action:'block',active:true,hits:88},
-    {id:4,type:'ua',value:'python-requests/2',reason:'Script bot',action:'block',active:false,hits:215},
-  ];
-  state.blockedIPs=[
-    {ip:'45.155.205.233',reason:'Brute force',time:pastDate(0,3600),auto:true},
-    {ip:'179.43.128.16',reason:'HWID spoof attempt',time:pastDate(1),auto:true},
-    {ip:'91.108.4.0',reason:'Manual block',time:pastDate(2),auto:false},
-  ];
-  state.threats=[
-    {level:'high',title:'Brute Force Attack',desc:'185.220.x.x — 847 gagal login dalam 2 menit',time:'2 min ago',blocked:true},
-    {level:'high',title:'HWID Spoofing Detected',desc:'User "cracker99" mencoba bypass HWID lock',time:'14 min ago',blocked:true},
-    {level:'med',title:'Key Sharing Attempt',desc:'Key NEXAUTH-FF2A11 digunakan dari 3 IP berbeda',time:'1 hr ago',blocked:false},
-    {level:'med',title:'Reverse Engineering Signal',desc:'Pola debug terdeteksi dari HWID-AB22EF',time:'3 hr ago',blocked:true},
-    {level:'low',title:'Unusual Auth Rate',desc:'user "speed_test" auth 120x dalam 10 menit',time:'5 hr ago',blocked:false},
-    {level:'low',title:'Expired Key Retry',desc:'5 percobaan menggunakan key expired',time:'1 day ago',blocked:false},
-  ];
+function save() {
+  localStorage.setItem('ks_keys', JSON.stringify(keys));
+  localStorage.setItem('ks_activity', JSON.stringify(activity));
+  updateStats();
 }
 
-// ===== HELPERS =====
-function genKeyStr(p='NEXAUTH'){return `${p}-${rh(6)}-${rh(6)}-${rh(6)}`.toUpperCase()}
-function rh(n){return Math.random().toString(16).slice(2,2+n).padEnd(n,'0')}
-function hwid(){return 'HWID-'+Math.random().toString(16).slice(2,10).toUpperCase()}
-function randIP(){return `${rn(1,254)}.${rn(0,255)}.${rn(0,255)}.${rn(0,255)}`}
-function rn(a,b){return Math.floor(Math.random()*(b-a+1))+a}
-function futureDate(d){const x=new Date();x.setDate(x.getDate()+d);return x.toLocaleDateString()}
-function pastDate(d,s=0){const x=new Date();x.setDate(x.getDate()-d);x.setSeconds(x.getSeconds()-s);return x.toLocaleString()}
-function copyText(t){navigator.clipboard.writeText(t).then(()=>showToast('Copied!','info'))}
-function badge(type,text){return `<span class="badge badge-${type}">${text}</span>`}
-function genEncKey(){return 'AES256-'+Math.random().toString(36).slice(2,10).toUpperCase()+'-'+Math.random().toString(36).slice(2,10).toUpperCase()}
-
-// ===== TOAST =====
-function showToast(msg,type='info'){
-  const icons={success:'✅',error:'❌',info:'ℹ️',warn:'⚠️'};
-  const el=document.createElement('div');
-  el.className=`toast-msg ${type}`;
-  el.innerHTML=`${icons[type]||'ℹ️'} ${msg}`;
-  document.getElementById('toast').appendChild(el);
-  setTimeout(()=>{el.style.opacity='0';el.style.transform='translateX(30px)';el.style.transition='.3s';setTimeout(()=>el.remove(),300)},3200);
+function doLogin() {
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  const err = document.getElementById('loginError');
+  if (u === CREDS.username && p === CREDS.password) {
+    err.style.display = 'none';
+    document.getElementById('loginView').classList.remove('active');
+    document.getElementById('dashView').classList.add('active');
+    updateStats();
+    renderKeysTable();
+    renderHwidTable();
+    updateClock();
+  } else {
+    err.style.display = 'block';
+    err.textContent = 'Username atau password salah.';
+    document.getElementById('loginPass').value = '';
+  }
 }
 
-// ===== LOGIN =====
-function doLogin(){
-  const now=Date.now();
-  if(now<lockoutUntil){
-    const secs=Math.ceil((lockoutUntil-now)/1000);
-    document.getElementById('login-err').textContent=`🔒 Terlalu banyak percobaan. Tunggu ${secs}s.`;
-    document.getElementById('login-err').classList.add('show');
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('loginView').classList.contains('active')) doLogin();
+});
+
+function doLogout() {
+  document.getElementById('dashView').classList.remove('active');
+  document.getElementById('loginView').classList.add('active');
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+}
+
+function goPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  const map = { overview:0, keys:1, generate:2, hwid:3, api:4 };
+  document.querySelectorAll('.nav-item')[map[id]].classList.add('active');
+  if (id === 'keys') renderKeysTable();
+  if (id === 'hwid') renderHwidTable();
+}
+
+function genKey(prefix) {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const seg = () => Array.from({length:4}, () => chars[Math.floor(Math.random()*chars.length)]).join('');
+  return `${prefix.toUpperCase()}-${seg()}-${seg()}-${seg()}`;
+}
+
+function doGenerate() {
+  const count = parseInt(document.getElementById('genCount').value) || 1;
+  const dur = document.getElementById('genDuration').value;
+  const prefix = document.getElementById('genPrefix').value.trim() || 'KEY';
+  const hwidLock = document.getElementById('hwidLockOpt').checked;
+  const generated = [];
+
+  for (let i = 0; i < Math.min(count, 50); i++) {
+    let k;
+    do { k = genKey(prefix); } while (keys.find(x => x.key === k));
+    const now = new Date();
+    const exp = dur === 'lifetime' ? null : new Date(now.getTime() + parseDur(dur));
+    keys.push({
+      key: k,
+      duration: dur,
+      status: 'active',
+      hwid: null,
+      hwidLock: hwidLock,
+      created: now.toISOString(),
+      expires: exp ? exp.toISOString() : null
+    });
+    generated.push(k);
+  }
+
+  logActivity(generated[0], 'Generate', 'success');
+  save();
+  renderKeysTable();
+  document.getElementById('keyCount').textContent = keys.length;
+
+  const box = document.getElementById('genResult');
+  const txt = document.getElementById('genKeyText');
+  if (generated.length === 1) {
+    txt.textContent = generated[0];
+  } else {
+    txt.textContent = `${generated.length} key berhasil dibuat`;
+  }
+  box.style.display = 'flex';
+  showToast(generated.length + ' key berhasil dibuat!', 'success');
+}
+
+function parseDur(d) {
+  const n = parseInt(d);
+  return n * 24 * 3600 * 1000;
+}
+
+function copyKey() {
+  const t = document.getElementById('genKeyText').textContent;
+  navigator.clipboard.writeText(t).then(() => showToast('Key disalin!', 'success'));
+}
+
+function renderKeysTable() {
+  const q = (document.getElementById('searchKey')?.value || '').toLowerCase();
+  const tbody = document.getElementById('keysTable');
+  const filtered = keys.filter(k => k.key.toLowerCase().includes(q));
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:2rem;">Tidak ada key ditemukan</td></tr>';
     return;
   }
-  const u=document.getElementById('inp-user').value.trim();
-  const p=document.getElementById('inp-pass').value;
-  if(u===OWNER_USER && p===OWNER_PASS){
-    loginAttempts=0;
-    document.getElementById('login-screen').style.display='none';
-    document.getElementById('dashboard').style.display='block';
-    seedData();
-    document.getElementById('owner-id-val').value='nexauth_owner_'+rh(12);
-    document.getElementById('enc-key-preview').value=genEncKey();
-    showPage('overview');
-    renderAll();
-    showToast('Access granted. Welcome, Owner.','success');
-  } else {
-    loginAttempts++;
-    const box=document.getElementById('login-box');
-    box.classList.add('shake');
-    setTimeout(()=>box.classList.remove('shake'),400);
-    document.getElementById('login-err').textContent='❌ Username atau password salah.';
-    document.getElementById('login-err').classList.add('show');
-    document.getElementById('inp-pass').value='';
-    const rem=5-loginAttempts;
-    if(loginAttempts>=5){
-      lockoutUntil=Date.now()+60000;
-      document.getElementById('attempt-warn').textContent='Terlalu banyak percobaan. Panel dikunci 60 detik.';
-      document.getElementById('login-err').textContent='🔒 Panel dikunci sementara (60 detik).';
-    } else {
-      document.getElementById('attempt-warn').textContent=`Sisa percobaan: ${rem}`;
-    }
-  }
-}
-function logout(){
-  document.getElementById('dashboard').style.display='none';
-  document.getElementById('login-screen').style.display='flex';
-  document.getElementById('inp-user').value='';
-  document.getElementById('inp-pass').value='';
-  document.getElementById('login-err').classList.remove('show');
-  document.getElementById('attempt-warn').textContent='';
-  showToast('Logged out','info');
-}
-
-// ===== NAVIGATION =====
-const pageTitles={overview:'Overview',apps:'Applications',keys:'License Keys',users:'Users',files:'File Locker',firewall:'🛡️ Firewall',threats:'⚠️ Threat Monitor',logs:'Auth Logs',analytics:'Analytics',api:'API Reference',settings:'Settings'};
-function showPage(id){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  document.getElementById(`page-${id}`).classList.add('active');
-  const ni=document.querySelector(`.nav-item[onclick="showPage('${id}')"]`);
-  if(ni)ni.classList.add('active');
-  document.getElementById('page-title').textContent=pageTitles[id]||id;
-  const renders={overview:renderOverview,keys:renderKeys,users:renderUsers,apps:renderApps,
-    files:renderFiles,logs:renderLogs,analytics:renderAnalytics,api:renderAPI,
-    firewall:renderFirewall,threats:renderThreats,settings:renderSettings};
-  if(renders[id])renders[id]();
-}
-function renderAll(){renderOverview();renderKeys();renderUsers();renderApps();renderFiles();renderLogs();}
-function openModal(id){document.getElementById(`modal-${id}`).classList.add('active')}
-function closeModal(id){document.getElementById(`modal-${id}`).classList.remove('active')}
-
-// ===== OVERVIEW =====
-function renderOverview(){
-  document.getElementById('ov-keys').textContent=state.keys.length;
-  document.getElementById('ov-users').textContent=state.users.length;
-  document.getElementById('ov-blocked').textContent=state.blockedIPs.length+state.fwRules.reduce((a,r)=>a+r.hits,0);
-  const tbody=document.getElementById('recent-logs');
-  tbody.innerHTML=state.logs.slice(0,5).map(l=>`
-    <tr><td class="mono">${l.entity.length>16?l.entity.slice(0,16)+'…':l.entity}</td>
-    <td>${badge(l.result==='success'?'green':'red',l.result)}</td>
-    <td class="mono" style="font-size:12px">${l.ip}</td>
-    <td style="font-size:12px;color:var(--text3)">${l.time.slice(-8)}</td></tr>`).join('');
-  const kul=document.getElementById('key-usage-list');
-  kul.innerHTML=state.keys.slice(0,5).map(k=>{
-    const pct=Math.min(100,Math.round((k.uses/k.maxUses)*100));
-    return `<div style="margin-bottom:14px">
-      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px">
-        <span class="mono" style="color:var(--text2)">${k.key.slice(0,24)}…</span>
-        <span style="color:var(--text3)">${k.uses}/${k.maxUses}</span>
-      </div><div class="progress"><div class="progress-bar" style="width:${pct}%"></div></div></div>`;
+  tbody.innerHTML = filtered.map((k, i) => {
+    const statusClass = k.status;
+    const statusLabel = {active:'Aktif', inactive:'Nonaktif', banned:'Diblokir', expired:'Expired'}[k.status] || k.status;
+    const hwidDisplay = k.hwid
+      ? `<span class="hwid-tag locked">${k.hwid.substring(0,12)}...</span>`
+      : `<span class="hwid-tag none">Belum terkunci</span>`;
+    const created = new Date(k.created).toLocaleDateString('id-ID');
+    return `<tr>
+      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${k.key}</td>
+      <td>${k.duration}</td>
+      <td><span class="status-pill ${statusClass}"><span class="dot"></span>${statusLabel}</span></td>
+      <td>${hwidDisplay}</td>
+      <td style="color:var(--muted)">${created}</td>
+      <td>
+        ${k.status==='active' ? `<button class="action-btn danger" onclick="banKey('${k.key}')">Ban</button>` : `<button class="action-btn success" onclick="unbanKey('${k.key}')">Aktifkan</button>`}
+        ${k.hwid ? `<button class="action-btn" onclick="resetHwid('${k.key}')">Reset HWID</button>` : ''}
+        <button class="action-btn danger" onclick="deleteKey('${k.key}')">Hapus</button>
+      </td>
+    </tr>`;
   }).join('');
-  const fws=document.getElementById('fw-summary');
-  fws.innerHTML=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
-    <div style="text-align:center;padding:16px;background:var(--bg2);border-radius:12px">
-      <div style="font-size:28px;font-weight:800;font-family:'JetBrains Mono',monospace;color:var(--accent3)">${state.fwRules.filter(r=>r.active).length}</div>
-      <div style="font-size:12px;color:var(--text3);margin-top:4px">Active Rules</div></div>
-    <div style="text-align:center;padding:16px;background:var(--bg2);border-radius:12px">
-      <div style="font-size:28px;font-weight:800;font-family:'JetBrains Mono',monospace;color:var(--danger)">${state.blockedIPs.length}</div>
-      <div style="font-size:12px;color:var(--text3);margin-top:4px">Blocked IPs</div></div>
-    <div style="text-align:center;padding:16px;background:var(--bg2);border-radius:12px">
-      <div style="font-size:28px;font-weight:800;font-family:'JetBrains Mono',monospace;color:var(--warn)">${state.threats.filter(t=>t.level==='high').length}</div>
-      <div style="font-size:12px;color:var(--text3);margin-top:4px">High Threats</div></div>
-  </div>`;
 }
 
-// ===== KEYS =====
-function renderKeys(filter='all'){
-  const filtered=filter==='all'?state.keys:state.keys.filter(k=>k.status===filter);
-  document.getElementById('keys-tbody').innerHTML=filtered.map(k=>`
-    <tr><td><span class="mono">${k.key}</span><button class="copy-btn" onclick="copyText('${k.key}')">📋</button></td>
-    <td>${badge(k.status==='active'?'green':k.status==='expired'?'yellow':k.status==='banned'?'red':'gray',k.status)}</td>
-    <td><span class="tag">${k.uses}/${k.maxUses}</span></td>
-    <td style="font-size:13px">${k.expires}</td>
-    <td style="font-size:12px">${k.hwid?`<span class="tag" style="font-size:11px">${k.hwid.slice(0,14)}</span>`:'<span style="color:var(--text3)">None</span>'}</td>
-    <td style="font-size:13px;color:var(--text3)">${k.note||'—'}</td>
-    <td><div style="display:flex;gap:6px">
-      ${k.status==='banned'?`<button class="btn btn-outline btn-sm" onclick="unbanKey(${k.id})">Unban</button>`:`<button class="btn btn-danger btn-sm" onclick="banKey(${k.id})">Ban</button>`}
-      <button class="btn btn-outline btn-sm" onclick="deleteKey(${k.id})">Del</button>
-    </div></td></tr>`).join('');
-}
-function filterKeys(f,el){document.querySelectorAll('#page-keys .tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');renderKeys(f);}
-function generateKeys(){
-  const count=Math.min(parseInt(document.getElementById('gen-count').value)||1,500);
-  const prefix=(document.getElementById('gen-prefix').value||'NEXAUTH').replace(/-$/,'');
-  const duration=document.getElementById('gen-duration').value;
-  const uses=parseInt(document.getElementById('gen-uses').value)||1;
-  const note=document.getElementById('gen-note').value;
-  const hwidLock=document.getElementById('gen-hwid').checked;
-  const daysMap={'1d':1,'7d':7,'30d':30,'90d':90,'365d':365,lifetime:0};
-  const days=daysMap[duration]||30;
-  for(let i=0;i<count;i++){
-    state.keys.unshift({id:Date.now()+i,key:genKeyStr(prefix),status:'active',uses:0,maxUses:uses,
-      expires:duration==='lifetime'?'Lifetime':futureDate(days),hwid:hwidLock?null:'',note,created:new Date().toLocaleDateString()});
+function renderHwidTable() {
+  const tbody = document.getElementById('hwidTable');
+  const locked = keys.filter(k => k.hwid);
+  if (!locked.length) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:2rem;">Belum ada HWID terkunci</td></tr>';
+    return;
   }
-  closeModal('genkey');renderKeys();renderOverview();
-  showToast(`${count} key berhasil dibuat`,'success');
-}
-function banKey(id){const k=state.keys.find(k=>k.id===id);if(k){k.status='banned';renderKeys();showToast('Key dibanned','warn');}}
-function unbanKey(id){const k=state.keys.find(k=>k.id===id);if(k){k.status='active';renderKeys();showToast('Key di-unban','success');}}
-function deleteKey(id){state.keys=state.keys.filter(k=>k.id!==id);renderKeys();renderOverview();showToast('Key dihapus','error');}
-function exportKeys(){
-  const csv='Key,Status,Uses,MaxUses,Expires,Note\n'+state.keys.map(k=>`${k.key},${k.status},${k.uses},${k.maxUses},${k.expires},"${k.note}"`).join('\n');
-  const a=document.createElement('a');a.href='data:text/csv,'+encodeURIComponent(csv);a.download='nexauth_keys.csv';a.click();
-  showToast('CSV diekspor','success');
+  tbody.innerHTML = locked.map(k => `<tr>
+    <td>${k.key}</td>
+    <td><span class="hwid-tag locked">${k.hwid}</span></td>
+    <td><span class="status-pill ${k.status}"><span class="dot"></span>${k.status}</span></td>
+    <td><button class="action-btn" onclick="resetHwid('${k.key}')"><i class="ti ti-refresh"></i> Reset HWID</button></td>
+  </tr>`).join('');
 }
 
-// ===== USERS =====
-function renderUsers(filter='all'){
-  const filtered=filter==='all'?state.users:state.users.filter(u=>u.status===filter);
-  document.getElementById('users-tbody').innerHTML=filtered.map(u=>`
-    <tr><td><div style="display:flex;align-items:center;gap:10px">
-      <div class="avatar" style="width:28px;height:28px;font-size:11px">${u.username[0].toUpperCase()}</div>
-      <span>${u.username}</span></div></td>
-    <td style="font-size:12px;color:var(--text2)">${u.email}</td>
-    <td>${badge(u.role==='admin'?'blue':u.role==='vip'?'yellow':'gray',u.role)}</td>
-    <td>${badge(u.status==='active'?'green':'red',u.status)}</td>
-    <td style="font-size:12px;color:var(--text3)">${u.lastAuth}</td>
-    <td><div style="display:flex;gap:6px">
-      ${u.status==='banned'?`<button class="btn btn-outline btn-sm" onclick="unbanUser(${u.id})">Unban</button>`:`<button class="btn btn-danger btn-sm" onclick="banUser(${u.id})">Ban</button>`}
-      <button class="btn btn-outline btn-sm" onclick="deleteUser(${u.id})">Del</button>
-    </div></td></tr>`).join('');
-}
-function filterUsers(f,el){document.querySelectorAll('#page-users .tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');renderUsers(f);}
-function addUser(){
-  const username=document.getElementById('add-username').value;
-  const email=document.getElementById('add-email').value;
-  const role=document.getElementById('add-role').value;
-  if(!username||!email){showToast('Isi field yang diperlukan','error');return}
-  state.users.unshift({id:Date.now(),username,email,role,status:'active',joined:new Date().toLocaleDateString(),lastAuth:'Never',hwid:hwid()});
-  closeModal('adduser');renderUsers();renderOverview();
-  showToast(`User "${username}" ditambahkan`,'success');
-}
-function banUser(id){const u=state.users.find(u=>u.id===id);if(u){u.status='banned';renderUsers();showToast('User dibanned','warn');}}
-function unbanUser(id){const u=state.users.find(u=>u.id===id);if(u){u.status='active';renderUsers();showToast('User di-unban','success');}}
-function deleteUser(id){state.users=state.users.filter(u=>u.id!==id);renderUsers();renderOverview();showToast('User dihapus','error');}
-
-// ===== APPS =====
-function renderApps(){
-  const colors=['#00d4ff','#00ffaa','#ffaa00','#ff4466'];
-  document.getElementById('apps-list').innerHTML=state.apps.map((a,i)=>`
-    <div class="app-card">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-        <div style="display:flex;align-items:center;gap:14px">
-          <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,${colors[i%4]},${colors[(i+1)%4]}40);display:flex;align-items:center;justify-content:center;font-size:20px">${['🛡️','💎','🔮','⚡'][i%4]}</div>
-          <div><div style="font-weight:700;font-size:16px">${a.name}</div><div style="font-size:12px;color:var(--text3)">v${a.version} · ${a.created}</div></div>
-        </div>
-        <div style="display:flex;gap:8px;align-items:center">
-          ${badge('green','active')}
-          <button class="btn btn-danger btn-sm" onclick="deleteApp(${a.id})">Del</button>
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;padding-top:14px;border-top:1px solid var(--border)">
-        <div><div style="font-size:22px;font-weight:800;font-family:'JetBrains Mono',monospace">${a.keys}</div><div style="font-size:11px;color:var(--text3)">Keys</div></div>
-        <div><div style="font-size:22px;font-weight:800;font-family:'JetBrains Mono',monospace">${a.users}</div><div style="font-size:11px;color:var(--text3)">Users</div></div>
-        <div><div style="font-size:22px;font-weight:800;font-family:'JetBrains Mono',monospace">${a.auths}</div><div style="font-size:11px;color:var(--text3)">Auths</div></div>
-      </div>
-    </div>`).join('');
-}
-function createApp(){
-  const name=document.getElementById('new-app-name').value;
-  const ver=document.getElementById('new-app-ver').value||'1.0.0';
-  if(!name){showToast('Masukkan nama app','error');return}
-  state.apps.push({id:Date.now(),name,version:ver,keys:0,users:0,auths:0,status:'active',hwidLock:true,created:new Date().toLocaleDateString()});
-  closeModal('newapp');renderApps();renderOverview();
-  showToast(`App "${name}" dibuat`,'success');
-}
-function deleteApp(id){state.apps=state.apps.filter(a=>a.id!==id);renderApps();showToast('App dihapus','error');}
-
-// ===== FILES =====
-function renderFiles(){
-  document.getElementById('locked-files-list').innerHTML=state.files.length===0?`<div style="text-align:center;padding:30px;color:var(--text3)">Belum ada file terkunci</div>`:
-    state.files.map((f,i)=>`
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)">
-      <div style="display:flex;align-items:center;gap:12px">
-        <div style="font-size:22px">${f.name.endsWith('.exe')?'💻':f.name.endsWith('.dll')?'🔧':f.name.endsWith('.bin')?'⚙️':'📁'}</div>
-        <div><div style="font-weight:600;font-size:14px">${f.name}</div>
-          <div style="font-size:11px;color:var(--text3)">${f.size} · ${f.downloads} downloads · ${f.created}</div></div>
-      </div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <span class="badge badge-blue">🔒</span>
-        <button class="btn btn-danger btn-sm" onclick="deleteFile(${i})">Del</button>
-      </div>
-    </div>`).join('');
-}
-function lockFile(input){
-  if(input.files[0]){
-    const f=input.files[0];
-    state.files.push({name:f.name,size:(f.size/1024<1024?(f.size/1024).toFixed(1)+' KB':(f.size/1048576).toFixed(1)+' MB'),locked:true,downloads:0,created:new Date().toLocaleDateString()});
-    renderFiles();showToast(`"${f.name}" dikunci & dienkripsi`,'success');
-    document.getElementById('enc-key-preview').value=genEncKey();
-  }
-}
-function regenEncKey(){document.getElementById('enc-key-preview').value=genEncKey();showToast('Encryption key baru dibuat','info');}
-function deleteFile(i){state.files.splice(i,1);renderFiles();showToast('File dihapus','error');}
-
-// ===== FIREWALL =====
-function renderFirewall(){
-  const typeIcons={ip:'🌐',hwid:'💻',country:'🌍',ua:'🤖'};
-  const actionBadge={block:'badge-red',ban:'badge-danger',challenge:'badge-yellow'};
-  document.getElementById('fw-rules-list').innerHTML=state.fwRules.length===0?`<div style="text-align:center;padding:20px;color:var(--text3)">Belum ada aturan</div>`:
-    state.fwRules.map(r=>`
-    <div class="fw-rule">
-      <div class="fw-rule-info">
-        <div class="fw-rule-name">${typeIcons[r.type]||'🔒'} ${r.value} <span class="badge badge-${r.action==='block'?'red':r.action==='ban'?'red':'yellow'}" style="margin-left:6px">${r.action}</span></div>
-        <div class="fw-rule-desc">${r.reason} · ${r.hits} hits · <span class="mono" style="font-size:11px">${r.type}</span></div>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px;margin-left:12px">
-        <label class="toggle" style="transform:scale(0.85)"><input type="checkbox" ${r.active?'checked':''} onchange="toggleFwRule(${r.id})"><span class="slider"></span></label>
-        <button class="btn btn-danger btn-sm" onclick="deleteFwRule(${r.id})">Del</button>
-      </div>
-    </div>`).join('');
-
-  const fws=state.fwSettings;
-  const settingItems=[
-    {key:'bruteForce',label:'Anti Brute Force',desc:'Auto-block setelah 5 gagal login'},
-    {key:'hwidSpoof',label:'Anti HWID Spoofing',desc:'Deteksi dan blokir percobaan spoofing HWID'},
-    {key:'rateLimit',label:'Rate Limiting',desc:'Batasi 60 request/menit per IP'},
-    {key:'geoBlock',label:'Geo Blocking',desc:'Blokir negara tertentu (konfigurasi manual)'},
-    {key:'antiDebug',label:'Anti Debug / Reverse Engineering',desc:'Deteksi tools reverse engineering'},
-    {key:'reqSigning',label:'Request Signing',desc:'Verifikasi signature setiap request API'},
-  ];
-  document.getElementById('fw-settings-list').innerHTML=settingItems.map(s=>`
-    <div class="fw-rule">
-      <div class="fw-rule-info">
-        <div class="fw-rule-name" style="font-size:13px">${s.label}</div>
-        <div class="fw-rule-desc">${s.desc}</div>
-      </div>
-      <label class="toggle" style="transform:scale(0.85);margin-left:12px">
-        <input type="checkbox" ${fws[s.key]?'checked':''} onchange="toggleFwSetting('${s.key}',this)">
-        <span class="slider"></span>
-      </label>
-    </div>`).join('');
-
-  document.getElementById('blocked-ip-list').innerHTML=state.blockedIPs.length===0?`<div style="padding:16px;color:var(--text3)">Tidak ada IP yang diblokir</div>`:
-    state.blockedIPs.map((b,i)=>`
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
-      <div>
-        <div style="color:var(--danger)">${b.ip} ${b.auto?'<span style="background:rgba(255,68,102,0.1);color:var(--danger);font-size:10px;padding:2px 6px;border-radius:4px">AUTO</span>':''}</div>
-        <div style="font-size:11px;color:var(--text3);margin-top:2px">${b.reason} · ${b.time}</div>
-      </div>
-      <button class="btn btn-outline btn-sm" style="font-size:11px" onclick="unblockIP(${i})">Unblock</button>
-    </div>`).join('');
-}
-function toggleFirewall(){
-  state.fwEnabled=document.getElementById('fw-global-toggle').checked;
-  const label=document.getElementById('fw-global-label');
-  const ind=document.getElementById('fw-status-indicator');
-  if(state.fwEnabled){
-    label.style.color='var(--accent3)';label.textContent='● AKTIF';
-    ind.style.color='var(--accent3)';ind.innerHTML='🛡️ Firewall ON';
-    showToast('Firewall diaktifkan','success');
-  } else {
-    label.style.color='var(--danger)';label.textContent='● MATI';
-    ind.style.color='var(--danger)';ind.innerHTML='⚠️ Firewall OFF';
-    showToast('PERINGATAN: Firewall dimatikan!','warn');
-  }
-}
-function toggleFwRule(id){const r=state.fwRules.find(r=>r.id===id);if(r){r.active=!r.active;renderFirewall();showToast(r.active?'Rule diaktifkan':'Rule dinonaktifkan',r.active?'success':'warn');}}
-function toggleFwSetting(key,el){state.fwSettings[key]=el.checked;showToast(el.checked?`${key} aktif`:`${key} nonaktif`,el.checked?'success':'warn');}
-function deleteFwRule(id){state.fwRules=state.fwRules.filter(r=>r.id!==id);renderFirewall();showToast('Rule dihapus','error');}
-function addFwRule(){
-  const type=document.getElementById('fw-type').value;
-  const val=document.getElementById('fw-val').value;
-  const reason=document.getElementById('fw-reason').value;
-  const action=document.getElementById('fw-action').value;
-  if(!val){showToast('Masukkan nilai yang akan diblokir','error');return}
-  state.fwRules.push({id:Date.now(),type,value:val,reason:reason||'Manual block',action,active:true,hits:0});
-  closeModal('fwrule');renderFirewall();
-  showToast(`Rule "${val}" ditambahkan`,'success');
-}
-function unblockIP(i){const ip=state.blockedIPs[i].ip;state.blockedIPs.splice(i,1);renderFirewall();showToast(`${ip} di-unblock`,'info');}
-function clearBlockedIPs(){state.blockedIPs=[];renderFirewall();showToast('Semua IP dibebaskan','info');}
-
-// ===== THREATS =====
-function renderThreats(){
-  const highs=state.threats.filter(t=>t.level==='high');
-  const meds=state.threats.filter(t=>t.level==='med');
-  const lows=state.threats.filter(t=>t.level==='low');
-  const blocked=state.threats.filter(t=>t.blocked);
-  document.getElementById('th-high').textContent=highs.length;
-  document.getElementById('th-med').textContent=meds.length;
-  document.getElementById('th-low').textContent=lows.length;
-  document.getElementById('th-blocked').textContent=blocked.length;
-  document.getElementById('threat-list').innerHTML=state.threats.map((t,i)=>`
-    <div class="threat-item ${t.level}">
-      <div class="threat-dot ${t.level}"></div>
-      <div style="flex:1">
-        <div style="font-weight:700;font-size:13px;margin-bottom:3px">${t.title}</div>
-        <div style="font-size:12px;color:var(--text2)">${t.desc}</div>
-        <div style="font-size:11px;color:var(--text3);margin-top:4px">${t.time} ${t.blocked?'· <span style="color:var(--accent3)">✓ Blocked</span>':''}</div>
-      </div>
-      <div style="display:flex;gap:6px;flex-shrink:0">
-        ${!t.blocked?`<button class="btn btn-danger btn-sm" onclick="blockThreat(${i})">Block</button>`:''}
-        <button class="btn btn-outline btn-sm" onclick="dismissThreat(${i})">Dismiss</button>
-      </div>
-    </div>`).join('');
-  document.getElementById('autoblock-list').innerHTML=`
-    <div class="fw-rule"><div class="fw-rule-info"><div class="fw-rule-name" style="font-size:13px">Auto-block Brute Force</div><div class="fw-rule-desc">Block IP setelah 5 gagal auth dalam 60 detik</div></div>
-      <label class="toggle" style="transform:scale(0.85);margin-left:12px"><input type="checkbox" checked><span class="slider"></span></label></div>
-    <div class="fw-rule"><div class="fw-rule-info"><div class="fw-rule-name" style="font-size:13px">Auto-ban HWID Spoof</div><div class="fw-rule-desc">Langsung ban HWID yang terdeteksi spoofing</div></div>
-      <label class="toggle" style="transform:scale(0.85);margin-left:12px"><input type="checkbox" checked><span class="slider"></span></label></div>
-    <div class="fw-rule"><div class="fw-rule-info"><div class="fw-rule-name" style="font-size:13px">Auto-block Key Sharing</div><div class="fw-rule-desc">Block key jika digunakan dari 3+ IP berbeda</div></div>
-      <label class="toggle" style="transform:scale(0.85);margin-left:12px"><input type="checkbox" checked><span class="slider"></span></label></div>
-    <div class="fw-rule"><div class="fw-rule-info"><div class="fw-rule-name" style="font-size:13px">Alert via Email</div><div class="fw-rule-desc">Kirim notif email untuk high threats</div></div>
-      <label class="toggle" style="transform:scale(0.85);margin-left:12px"><input type="checkbox"><span class="slider"></span></label></div>`;
-}
-function blockThreat(i){state.threats[i].blocked=true;renderThreats();showToast('Ancaman diblokir','success');}
-function dismissThreat(i){state.threats.splice(i,1);renderThreats();showToast('Ancaman dismiss','info');}
-
-// ===== LOGS =====
-function renderLogs(){
-  const typeMap={auth:'🔐 auth',key_check:'🔑 key check',ban:'🚫 ban',register:'📝 register',failed:'❌ failed'};
-  document.getElementById('logs-tbody').innerHTML=state.logs.map(l=>`
-    <tr><td style="font-size:12px;color:var(--text3)">${l.time}</td>
-    <td style="font-size:13px">${typeMap[l.type]||l.type}</td>
-    <td class="mono" style="font-size:12px">${l.entity.length>20?l.entity.slice(0,20)+'…':l.entity}</td>
-    <td class="mono" style="font-size:12px">${l.ip}</td>
-    <td><span class="tag" style="font-size:11px">${l.hwid.slice(0,14)}</span></td>
-    <td>${badge(l.result==='success'?'green':'red',l.result)}</td>
-    <td style="font-size:12px;color:var(--text2)">${l.details}</td></tr>`).join('');
-}
-function clearLogs(){state.logs=[];renderLogs();showToast('Logs dibersihkan','info');}
-function exportLogs(){showToast('Logs diekspor','success');}
-
-// ===== ANALYTICS =====
-function renderAnalytics(){
-  const data=[420,380,510,445,600,520,680];
-  const days=['Sen','Sel','Rab','Kam','Jum','Sab','Min'];
-  const max=Math.max(...data);
-  document.getElementById('an-blocked').textContent=state.blockedIPs.length*12+state.fwRules.reduce((a,r)=>a+r.hits,0);
-  document.getElementById('chart-auths').innerHTML=`
-    <div style="display:flex;align-items:flex-end;gap:8px;height:140px;padding:0 8px">
-      ${data.map((v,i)=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px">
-        <div style="font-size:11px;color:var(--accent)">${v}</div>
-        <div style="width:100%;background:linear-gradient(0deg,var(--accent),var(--accent3));border-radius:6px 6px 0 0;height:${Math.round((v/max)*100)}px;min-height:4px;opacity:0.85"></div>
-        <div style="font-size:11px;color:var(--text3)">${days[i]}</div></div>`).join('')}
-    </div>`;
-  const countries=[['🇮🇩 Indonesia',42],['🇺🇸 United States',22],['🇷🇺 Russia',14],['🇩🇪 Germany',11],['🇧🇷 Brazil',7],['🇨🇳 China',4]];
-  document.getElementById('chart-countries').innerHTML=countries.map(([c,p])=>`
-    <div style="margin-bottom:14px">
-      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span>${c}</span><span>${p}%</span></div>
-      <div class="progress"><div class="progress-bar" style="width:${p}%"></div></div>
-    </div>`).join('');
-}
-
-// ===== API =====
-const codes={
-  python:`import requests
-
-API_SECRET = "sk_priv_xxxxxxxxxxxxxxxxxxxxxxx"
-BASE_URL = "https://api.nexauth.io/v1"
-
-def authenticate(license_key, hwid):
-    r = requests.post(f"{BASE_URL}/auth", json={
-        "key": license_key,
-        "hwid": hwid,
-        "app_id": "your_app_id"
-    }, headers={"X-API-Key": API_SECRET})
-    data = r.json()
-    if data["success"]:
-        print("✅ Auth OK:", data["user"])
-    else:
-        print("❌ Ditolak:", data["error"])
-
-authenticate("NEXAUTH-XXXXXX-XXXXXX", "HWID-XXXXXXXX")`,
-  csharp:`using System.Net.Http;
-using System.Text;
-using System.Text.Json;
-
-var client = new HttpClient();
-client.DefaultRequestHeaders.Add(
-    "X-API-Key", "sk_priv_xxxxxxxxxxxxxxxxx");
-
-var payload = JsonSerializer.Serialize(new {
-    key  = "NEXAUTH-XXXXXX-XXXXXX",
-    hwid = "HWID-XXXXXXXX",
-    app_id = "your_app_id"
-});
-var res = await client.PostAsync(
-    "https://api.nexauth.io/v1/auth",
-    new StringContent(payload, Encoding.UTF8,
-                      "application/json"));
-
-var json = await res.Content.ReadAsStringAsync();
-Console.WriteLine(json);`,
-  js:`const SECRET = "sk_priv_xxxxxxxxxxxxxxxxxxxxxxx";
-
-async function auth(key, hwid) {
-  const res = await fetch(
-    "https://api.nexauth.io/v1/auth", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-API-Key": SECRET
-    },
-    body: JSON.stringify({
-      key, hwid, app_id: "your_app_id"
-    })
-  });
-  const data = await res.json();
-  if (data.success) return data.token;
-  throw new Error(data.error);
-}
-
-auth("NEXAUTH-XXXXXX-XXXXXX", "HWID-XXXXXXXX");`
-};
-function renderAPI(){
-  document.getElementById('code-block').textContent=codes.python;
-  const eps=[
-    {m:'POST',p:'/v1/auth',d:'Autentikasi user dengan license key'},
-    {m:'GET',p:'/v1/keys',d:'List semua license keys'},
-    {m:'POST',p:'/v1/keys/generate',d:'Generate keys baru'},
-    {m:'DELETE',p:'/v1/keys/{key}',d:'Hapus atau ban key'},
-    {m:'GET',p:'/v1/users',d:'List semua users'},
-    {m:'POST',p:'/v1/users/ban',d:'Ban user by username/HWID'},
-    {m:'GET',p:'/v1/firewall/rules',d:'List firewall rules'},
-    {m:'POST',p:'/v1/firewall/block',d:'Block IP/HWID secara manual'},
-    {m:'GET',p:'/v1/logs',d:'Ambil authentication logs'},
-  ];
-  const mc={GET:'blue',POST:'green',DELETE:'red'};
-  document.getElementById('endpoint-list').innerHTML=eps.map(e=>`
-    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
-      <span class="badge badge-${mc[e.m]||'gray'}" style="min-width:55px;justify-content:center;font-size:10px">${e.m}</span>
-      <span class="mono" style="font-size:12px;color:var(--text2);flex:1">${e.p}</span>
-      <span style="font-size:12px;color:var(--text3)">${e.d}</span>
-    </div>`).join('');
-}
-function showCodeTab(lang,el){document.querySelectorAll('#page-api .tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');document.getElementById('code-block').textContent=codes[lang];}
-function toggleSecret(){const i=document.getElementById('api-secret-input');i.type=i.type==='password'?'text':'password';}
-function regenApiKey(){showToast('API Secret baru dibuat. Update app kamu!','warn');}
-
-// ===== SETTINGS =====
-function renderSettings(){
-  document.getElementById('session-settings').innerHTML=`
-    <div class="fw-rule"><div class="fw-rule-info"><div class="fw-rule-name" style="font-size:13px">Auto Logout (30 menit idle)</div><div class="fw-rule-desc">Logout otomatis jika tidak aktif</div></div>
-      <label class="toggle" style="transform:scale(0.85);margin-left:12px"><input type="checkbox" checked><span class="slider"></span></label></div>
-    <div class="fw-rule"><div class="fw-rule-info"><div class="fw-rule-name" style="font-size:13px">Login Alert Email</div><div class="fw-rule-desc">Notif setiap ada login ke panel</div></div>
-      <label class="toggle" style="transform:scale(0.85);margin-left:12px"><input type="checkbox"><span class="slider"></span></label></div>`;
-  document.getElementById('notif-settings').innerHTML=`
-    <div class="fw-rule"><div class="fw-rule-info"><div class="fw-rule-name" style="font-size:13px">Notif High Threat</div></div>
-      <label class="toggle" style="transform:scale(0.85);margin-left:12px"><input type="checkbox" checked><span class="slider"></span></label></div>
-    <div class="fw-rule"><div class="fw-rule-info"><div class="fw-rule-name" style="font-size:13px">Notif Auth Gagal</div></div>
-      <label class="toggle" style="transform:scale(0.85);margin-left:12px"><input type="checkbox" checked><span class="slider"></span></label></div>
-    <div class="fw-rule"><div class="fw-rule-info"><div class="fw-rule-name" style="font-size:13px">Laporan Mingguan</div></div>
-      <label class="toggle" style="transform:scale(0.85);margin-left:12px"><input type="checkbox"><span class="slider"></span></label></div>`;
-}
-function saveSettings(){showToast('Pengaturan disimpan','success');}
-function changePassword(){
-  const oldp=document.getElementById('cp-old').value;
-  const newp=document.getElementById('cp-new').value;
-  const conf=document.getElementById('cp-confirm').value;
-  if(oldp!==OWNER_PASS){showToast('Password lama salah','error');return}
-  if(newp.length<8){showToast('Password minimal 8 karakter','error');return}
-  if(newp!==conf){showToast('Konfirmasi password tidak cocok','error');return}
-  // In a real system, persist this. Here we just note it's changed.
-  showToast('Password berhasil diubah. Reload halaman lalu login ulang.','success');
-  closeModal('chpass');
-}
-function confirmDanger(msg,toastMsg,type){if(confirm(msg)){showToast(toastMsg,type);}}
-
-// ===== DROP ZONE =====
-const dz=document.getElementById('dropzone');
-if(dz){
-  dz.addEventListener('dragover',e=>{e.preventDefault();dz.style.borderColor='var(--accent)'});
-  dz.addEventListener('dragleave',()=>{dz.style.borderColor='var(--border2)'});
-  dz.addEventListener('drop',e=>{
-    e.preventDefault();dz.style.borderColor='var(--border2)';
-    const f=e.dataTransfer.files[0];
-    if(f){
-      const sz=f.size<1048576?(f.size/1024).toFixed(1)+' KB':(f.size/1048576).toFixed(1)+' MB';
-      state.files.push({name:f.name,size:sz,locked:true,downloads:0,created:new Date().toLocaleDateString()});
-      renderFiles();showToast(`"${f.name}" dikunci & dienkripsi`,'success');
-      document.getElementById('enc-key-preview').value=genEncKey();
-    }
+function banKey(key) {
+  showModal('Ban Key', `Yakin ingin memblokir key <code style="font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:var(--danger)">${key}</code>? Key tidak bisa digunakan lagi.`, () => {
+    const k = keys.find(x => x.key === key);
+    if (k) { k.status = 'banned'; save(); renderKeysTable(); logActivity(key, 'Ban Key', 'danger'); showToast('Key diblokir', 'error'); }
   });
 }
 
-// Close modal on overlay click
-document.querySelectorAll('.modal-overlay').forEach(o=>{
-  o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('active')});
-});
+function unbanKey(key) {
+  const k = keys.find(x => x.key === key);
+  if (k) { k.status = 'active'; save(); renderKeysTable(); logActivity(key, 'Aktifkan Key', 'success'); showToast('Key diaktifkan', 'success'); }
+}
 
-// Enter key on login
-document.addEventListener('DOMContentLoaded',()=>{
-  document.getElementById('inp-user').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('inp-pass').focus()});
-});
+function deleteKey(key) {
+  showModal('Hapus Key', `Yakin ingin menghapus key <code style="font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:var(--danger)">${key}</code>? Tindakan ini tidak bisa dibatalkan.`, () => {
+    keys = keys.filter(x => x.key !== key);
+    save(); renderKeysTable(); renderHwidTable(); showToast('Key dihapus', 'error');
+  });
+}
+
+function resetHwid(key) {
+  showModal('Reset HWID', `Reset HWID untuk key <code style="font-family:'JetBrains Mono',monospace;font-size:0.8rem">${key}</code>? Key bisa dipakai di PC lain setelah ini.`, () => {
+    const k = keys.find(x => x.key === key);
+    if (k) { k.hwid = null; save(); renderKeysTable(); renderHwidTable(); logActivity(key, 'Reset HWID', 'success'); showToast('HWID berhasil direset', 'success'); }
+  });
+}
+
+function updateStats() {
+  const total = keys.length;
+  const active = keys.filter(k => k.status === 'active').length;
+  const locked = keys.filter(k => k.hwid).length;
+  const banned = keys.filter(k => k.status === 'banned').length;
+  document.getElementById('st-total').textContent = total;
+  document.getElementById('st-active').textContent = active;
+  document.getElementById('st-hwid').textContent = locked;
+  document.getElementById('st-banned').textContent = banned;
+  document.getElementById('keyCount').textContent = total;
+}
+
+function logActivity(key, action, type) {
+  activity.unshift({
+    time: new Date().toLocaleTimeString('id-ID'),
+    key: key.substring(0, 14) + '...',
+    action,
+    type
+  });
+  if (activity.length > 20) activity.pop();
+  localStorage.setItem('ks_activity', JSON.stringify(activity));
+  renderActivity();
+}
+
+function renderActivity() {
+  const tbody = document.getElementById('activityLog');
+  if (!activity.length) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:2rem;">Belum ada aktivitas</td></tr>';
+    return;
+  }
+  tbody.innerHTML = activity.slice(0,10).map(a => `<tr>
+    <td style="color:var(--muted)">${a.time}</td>
+    <td>${a.key}</td>
+    <td>${a.action}</td>
+    <td><span class="status-pill ${a.type==='success'?'active':a.type==='danger'?'banned':'inactive'}"><span class="dot"></span>${a.action}</span></td>
+  </tr>`).join('');
+}
+
+let modalCb = null;
+function showModal(title, body, cb) {
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalBody').innerHTML = body;
+  modalCb = cb;
+  document.getElementById('modalOverlay').classList.add('open');
+  document.getElementById('modalConfirmBtn').onclick = () => { if(modalCb) modalCb(); closeModal(); };
+}
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  modalCb = null;
+}
+document.getElementById('modalOverlay').addEventListener('click', e => { if(e.target===e.currentTarget) closeModal(); });
+
+let toastTimer;
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  const icon = type==='success' ? '✓' : '✕';
+  t.innerHTML = `<span>${icon}</span> ${msg}`;
+  t.className = `toast ${type} show`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+function updateClock() {
+  const el = document.getElementById('currentTime');
+  if (el) el.textContent = new Date().toLocaleString('id-ID');
+}
+setInterval(updateClock, 1000);
+
+// Seed data demo
+if (keys.length === 0) {
+  const demo = [
+    { key: 'CHIK-AB3D-EF7G-HJ9K', duration: '30d', status: 'active', hwid: 'A1B2C3D4E5F6G7H8', hwidLock: true, created: new Date().toISOString(), expires: null },
+    { key: 'CHIK-XY2Z-MN5P-QR8S', duration: '7d', status: 'active', hwid: null, hwidLock: true, created: new Date().toISOString(), expires: null },
+    { key: 'CHIK-TU4V-WA6X-BC1D', duration: 'lifetime', status: 'banned', hwid: '9Z8Y7X6W5V4U3T2S', hwidLock: true, created: new Date().toISOString(), expires: null },
+  ];
+  keys.push(...demo);
+  save();
+  logActivity('CHIK-AB3D-EF7G-HJ9K', 'Pertama login', 'success');
+}
+
+renderActivity();
+updateStats();
 </script>
 </body>
 </html>
